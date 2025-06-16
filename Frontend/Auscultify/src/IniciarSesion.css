@@ -1,0 +1,150 @@
+.cuadro-central {
+    width: 50vh;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #395265;
+    border: 1vh solid #33414B;
+    border-radius: 2vh;
+}
+
+.cuadro-central-titulo{
+    display: flex;
+    height: 5vh;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5vh;
+}
+
+.cuadro-central-titulo p {
+    color: #f5f3f3;
+    font-size: 5vh;
+    margin-top: 9vh;
+    font-weight: bold;
+}
+
+.cuadro-central-texto-inicio {
+    display:flex;
+    height: 40vh;
+    width: 32vh;
+    flex-direction: column;
+    margin-top:3vh;
+}
+
+.cuadro-central-texto-inicio p {
+    color: #f5f3f3;
+    font-size: 2.5vh;
+}
+
+.cuadro-central-texto-inicio input {
+    width: 30vh;
+    height: 5vh;
+    border-radius: 1vh;
+    border: 0.5vh solid #283A47;
+    background-color: #76839A;
+    color: #283A47;
+    font-size: 2vh;
+}
+
+.cuadro-central-texto-inicio input::placeholder {
+    color: #4a5561;
+}
+
+.cuadro-central-texto-inicio input:focus {
+    outline: none;
+    border: 0.5vh solid #296088;
+    background-color: #7f8ca3;
+}
+
+.cuadro-central-texto-inicio button{
+    width: 30vh;
+    height: 5vh;
+    border-radius: 1vh;
+    border: 0.5vh solid #75A7C6;
+    background-color: #5886FB;
+    color: #f5f3f3;
+    font-size: 2vh;
+    margin-top: 4.5vh;
+    box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.cuadro-central-texto-inicio button:hover{
+    background-color: #4377f8;
+    border: 0.5vh solid #609dc4;
+    cursor: pointer;
+}
+
+.cuadro-central-texto-registrarse{
+    display: flex;
+    height: 5vh;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1vh;
+}
+
+.cuadro-central-texto-registrarse p{
+    color: #f5f3f3;
+    font-size: 2vh;
+}
+
+.cuadro-central-texto-registrarse p:hover{
+    color: #5886FB;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.cuadro-central-texto-registro {
+    display:flex;
+    height: 50vh;
+    width: 32vh;
+    flex-direction: column;
+    margin-top:3vh;
+}
+
+.cuadro-central-texto-registro p {
+    color: #f5f3f3;
+    font-size: 2.5vh;
+}
+
+.cuadro-central-texto-registro input {
+    width: 30vh;
+    height: 5vh;
+    border-radius: 1vh;
+    border: 1px solid #885D23;
+    background-color: #332B24;
+    color: #e0e0e0;
+    font-size: 2vh;
+    padding-left: 1.5vh;
+}
+
+.cuadro-central-texto-registro input:focus {
+    outline: none;
+    border: 1px solid #5886FB;
+    background-color: #3D3229;
+}
+
+.cuadro-central-texto-registro button{
+    width: 30vh;
+    height: 5vh;
+    border-radius: 1vh;
+    border: 1px solid #404040;
+    background-color: #5886FB;
+    color: #1a1a1a;
+    font-size: 2vh;
+    margin-top: 4.5vh;
+}
+
+.cuadro-central-texto-registro button:hover{
+    background-color: #CA8830;
+    cursor: pointer;
+}
+
+.mensaje-error {
+    color: #ff4444;
+    font-size: 1.8vh;
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+}
