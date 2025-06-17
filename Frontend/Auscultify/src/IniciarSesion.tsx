@@ -17,7 +17,7 @@ const IniciarSesion: React.FC = () => {
     <div className='fondo'>
         <div className='cuadro-central'>
             <div className='cuadro-central-titulo'>
-                <p>Iniciar sesión</p>
+                <p>Inicia sesión</p>
             </div>
             
             <div className='cuadro-central-texto-inicio'>
