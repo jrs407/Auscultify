@@ -123,6 +123,19 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios_has_Preguntas` (
 ENGINE = InnoDB;
 
 
+-- Inserta un criterio por defecto si no existe
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (1, 'Criterio por defecto', 'Default')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+-- Inserta usuario admin con contraseña bcrypt 'admin'
+INSERT INTO `mydb`.`Usuarios`
+(`idUsuario`, `correoElectronico`, `contrasena`, `totalPreguntasAcertadas`, `totalPreguntasFalladas`, `totalPreguntasContestadas`, `racha`, `ultimoDiaPregunta`, `esPublico`, `idCriterioMasUsado`)
+VALUES
+(1, 'admin', '$2a$10$wqj6n6lQwQ5QwQ5QwQ5QwOeQwQ5QwQ5QwQ5QwQ5QwQ5QwQ5QwQ5Q', 0, 0, 0, 0, NULL, 1, 1)
+ON DUPLICATE KEY UPDATE correoElectronico=VALUES(correoElectronico);
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

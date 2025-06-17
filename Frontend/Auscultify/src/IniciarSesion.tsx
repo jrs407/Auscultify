@@ -4,14 +4,37 @@ import './IniciarSesion.css';
 
 const IniciarSesion: React.FC = () => {
   const navigate = useNavigate();
-      const [usuario, setUsuario] = React.useState('');
-      const [contrasena, setContrasena] = React.useState('');
-      const [error] = React.useState('');
+  const [usuario, setUsuario] = React.useState('');
+  const [contrasena, setContrasena] = React.useState('');
+  const [error, setError] = React.useState('');
 
-      const handleLogin = async () => {
-          console.log('Iniciando sesión con:', { usuario, contrasena });
-  
-      };
+  const handleLogin = async () => {
+    setError('');
+    try {
+      const response = await fetch('http://localhost:3000/login', { // Cambia el puerto si tu backend usa otro
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ usuario, contrasena })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.mensaje || 'Error al iniciar sesión');
+        return;
+      }
+
+      const data = await response.json();
+
+      // Navega a /home pasando los datos del usuario en el state
+      navigate('/home', { state: { usuario: data.usuario } });
+      
+      alert('Inicio de sesión exitoso');
+    } catch {
+      setError('No se pudo conectar con el servidor');
+    }
+  };
 
   return (
     <div className='fondo'>
