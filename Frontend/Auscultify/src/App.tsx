@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import IniciarSesion from './IniciarSesion';
-import Home from './home';
+import Home from './Home';
 
 
 function App() {

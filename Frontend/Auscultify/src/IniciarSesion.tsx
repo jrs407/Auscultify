@@ -11,11 +11,12 @@ const IniciarSesion: React.FC = () => {
   const handleLogin = async () => {
     setError('');
     try {
-      const response = await fetch('http://localhost:3000/login', { // Cambia el puerto si tu backend usa otro
+      const response = await fetch('http://localhost:3001/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ usuario, contrasena })
       });
 

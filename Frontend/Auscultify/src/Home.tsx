@@ -1,14 +1,20 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+interface LocationState {
+  usuario: {
+    id: string;
+    email: string;
+  };
+}
+
 const Home: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const usuario = (location.state as any)?.usuario;
+  const usuario = (location.state as LocationState)?.usuario;
 
   React.useEffect(() => {
     if (!usuario) {
-      // Si no hay datos de usuario, redirige a login
       navigate('/login');
     }
   }, [usuario, navigate]);
