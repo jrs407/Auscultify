@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     build:
@@ -38,5 +36,23 @@ services:
       - DB_NAME=mydb
       - DB_PORT=3306
 
+  register:
+    build:
+      context: ./Backend/Registrarse
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    depends_on:
+      - database
+    environment:
+      - PORT=3002
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
+
 volumes:
   mysql_data:
+

@@ -41,6 +41,13 @@ const iniciarSesionHandler: express.RequestHandler = async (req, res) => {
         contrasena: string;
     };
 
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(usuario)) {
+        res.status(400).json({ mensaje: 'Dirección de correo electrónico no válida' });
+        return;
+    }
+
     try {
         // Busca por correoElectronico igual a usuario
         const [rows]: any = await pool.execute(
@@ -64,7 +71,14 @@ const iniciarSesionHandler: express.RequestHandler = async (req, res) => {
         res.json({
             usuario: {
                 id: usuarioDb.idUsuario,
-                email: usuarioDb.correoElectronico
+                email: usuarioDb.correoElectronico,
+                totalPreguntasAcertadas: usuarioDb.totalPreguntasAcertadas,
+                totalPreguntasFalladas: usuarioDb.totalPreguntasFalladas,
+                totalPreguntasContestadas: usuarioDb.totalPreguntasContestadas,
+                racha: usuarioDb.racha,
+                ultimoDiaPregunta: usuarioDb.ultimoDiaPregunta,
+                esPublico: usuarioDb.esPublico,
+                idCriterioMasUsado: usuarioDb.idCriterioMasUsado
             }
         });
 

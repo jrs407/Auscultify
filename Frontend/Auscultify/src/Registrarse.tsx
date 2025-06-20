@@ -7,10 +7,40 @@ const Registrarse: React.FC = () => {
     const [usuario, setUsuario] = React.useState('');
     const [contrasena1, setContrasena1] = React.useState('');
     const [contrasena2, setContrasena2] = React.useState('');
-    const [error] = React.useState('');
+    const [error, setError] = React.useState('');
 
     const handleRegister = async () => {
-        
+        try {
+            if (!usuario || !contrasena1 || !contrasena2) {
+                setError('Todos los campos son obligatorios');
+                return;
+            }
+
+            const response = await fetch('http://localhost:3002/registrarse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    usuario,
+                    contrasena1,
+                    contrasena2
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.mensaje);
+                return;
+            }
+
+            // Registro exitoso, redirigir al home
+            navigate('/home', { state: { usuario: data.usuario } });
+
+        } catch {
+            setError('Error al conectar con el servidor');
+        }
     };
 
   return (

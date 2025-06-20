@@ -18,7 +18,7 @@ USE `mydb` ;
 -- Table `mydb`.`CriterioAlgoritmo`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`CriterioAlgoritmo` (
-  `idCriterioAlgoritmo` INT NOT NULL,
+  `idCriterioAlgoritmo` INT NOT NULL AUTO_INCREMENT,
   `textoCriterio` VARCHAR(255) NULL DEFAULT NULL,
   `tituloCriterio` VARCHAR(255) NULL DEFAULT NULL,
   PRIMARY KEY (`idCriterioAlgoritmo`))
@@ -29,7 +29,7 @@ ENGINE = InnoDB;
 -- Table `mydb`.`Usuarios`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios` (
-  `idUsuario` INT NOT NULL,
+  `idUsuario` INT NOT NULL AUTO_INCREMENT,
   `correoElectronico` VARCHAR(255) NULL DEFAULT NULL,
   `contrasena` VARCHAR(255) NULL DEFAULT NULL,
   `totalPreguntasAcertadas` INT NULL DEFAULT NULL,
@@ -74,7 +74,7 @@ ENGINE = InnoDB;
 -- Table `mydb`.`Categorias`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Categorias` (
-  `idCategorias` INT NOT NULL,
+  `idCategorias` INT NOT NULL AUTO_INCREMENT,
   `nombreCategoria` VARCHAR(255) NULL DEFAULT NULL,
   PRIMARY KEY (`idCategorias`))
 ENGINE = InnoDB;
@@ -84,7 +84,7 @@ ENGINE = InnoDB;
 -- Table `mydb`.`Preguntas`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Preguntas` (
-  `idPregunta` INT NOT NULL,
+  `idPregunta` INT NOT NULL AUTO_INCREMENT,
   `urlAudio` VARCHAR(255) NULL DEFAULT NULL,
   `respuestaCorrecta` VARCHAR(255) NULL DEFAULT NULL,
   `Categorias_idCategorias` INT NOT NULL,
@@ -104,10 +104,10 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios_has_Preguntas` (
   `Usuarios_idUsuario` INT NOT NULL,
   `Preguntas_idPregunta` INT NOT NULL,
-  `idRespuesta` INT NOT NULL,
+  `idRespuesta` INT NOT NULL AUTO_INCREMENT,
   `fechaDeContestacion` DATE NULL DEFAULT NULL,
   `respuestaCorrecta` TINYINT NULL DEFAULT NULL,
-  PRIMARY KEY (`Usuarios_idUsuario`, `Preguntas_idPregunta`, `idRespuesta`),
+  PRIMARY KEY (`idRespuesta`),
   INDEX `fk_Usuarios_has_Preguntas_Preguntas1_idx` (`Preguntas_idPregunta` ASC) VISIBLE,
   INDEX `fk_Usuarios_has_Preguntas_Usuarios1_idx` (`Usuarios_idUsuario` ASC) VISIBLE,
   CONSTRAINT `fk_Usuarios_has_Preguntas_Usuarios1`
