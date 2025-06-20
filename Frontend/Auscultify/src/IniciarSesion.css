@@ -113,32 +113,34 @@
     width: 30vh;
     height: 5vh;
     border-radius: 1vh;
-    border: 1px solid #885D23;
-    background-color: #332B24;
-    color: #e0e0e0;
+    border: 0.5vh solid #283A47;
+    background-color: #76839A;
+    color: #283A47;
     font-size: 2vh;
     padding-left: 1.5vh;
 }
 
 .cuadro-central-texto-registro input:focus {
     outline: none;
-    border: 1px solid #5886FB;
-    background-color: #3D3229;
+    border: 0.5vh solid #296088;
+    background-color: #7f8ca3;
 }
 
 .cuadro-central-texto-registro button{
     width: 30vh;
     height: 5vh;
     border-radius: 1vh;
-    border: 1px solid #404040;
+    border: 0.5vh solid #75A7C6;
     background-color: #5886FB;
-    color: #1a1a1a;
+    color: #f5f3f3;
     font-size: 2vh;
     margin-top: 4.5vh;
+    box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
 }
 
 .cuadro-central-texto-registro button:hover{
-    background-color: #CA8830;
+    background-color: #4377f8;
+    border: 0.5vh solid #609dc4;
     cursor: pointer;
 }
 
