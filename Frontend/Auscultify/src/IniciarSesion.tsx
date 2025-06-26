@@ -31,7 +31,6 @@ const IniciarSesion: React.FC = () => {
       // Navega a /home pasando los datos del usuario en el state
       navigate('/home', { state: { usuario: data.usuario } });
       
-      alert('Inicio de sesión exitoso');
     } catch {
       setError('No se pudo conectar con el servidor');
     }

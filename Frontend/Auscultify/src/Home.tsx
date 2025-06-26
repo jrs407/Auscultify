@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import './Home.css';
+import Sidebar from './components/Sidebar';
 
 interface LocationState {
   usuario: {
     id: string;
     email: string;
+    totalPreguntasAcertadas: number;
+    totalPreguntasFalladas: number;
+    totalPreguntasContestadas: number;
+    racha: number;
+    ultimoDiaPregunta: string;
+    esPublico: boolean;
+    idCriterioMasUsado: string;
   };
 }
 
@@ -12,6 +21,7 @@ const Home: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const usuario = (location.state as LocationState)?.usuario;
+  const [selectedButton, setSelectedButton] = useState('aprender');
 
   React.useEffect(() => {
     if (!usuario) {
@@ -19,14 +29,21 @@ const Home: React.FC = () => {
     }
   }, [usuario, navigate]);
 
+  const handleButtonClick = (buttonName: string) => {
+    setSelectedButton(buttonName);
+
+  };
+
   if (!usuario) return null;
 
   return (
-    <div>
-      <h1>Bienvenido a Auscultify</h1>
-      <p>Has iniciado sesión correctamente.</p>
-      <p>ID: {usuario.id}</p>
-      <p>Email: {usuario.email}</p>
+    <div className='fondo'>
+      <Sidebar 
+        usuario={usuario} 
+        selectedButton={selectedButton} 
+        onButtonClick={handleButtonClick} 
+      />
+      <div className='segunda-mitad'></div>
     </div>
   );
 };
