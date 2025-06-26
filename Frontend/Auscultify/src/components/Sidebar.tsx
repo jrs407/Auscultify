@@ -6,6 +6,8 @@ import libroIcon from '../assets/libro.png';
 import graficaIcon from '../assets/grafica.png';
 import friendshipIcon from '../assets/friendship.png';
 import profileIcon from '../assets/profile.png';
+import adminIcon from '../assets/settings.png';
+
 
 interface Usuario {
   id: string;
@@ -72,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({ usuario, selectedButton, onButtonClic
           className={selectedButton === 'admin' ? 'boton-seleccionado-admin' : 'boton-normal-admin'} 
           onClick={() => onButtonClick('admin')}
         >
-          <img src={libroIcon} alt="Admin" className='boton-imagen' />
-          Admin
+          <img src={adminIcon} alt="Admin" className='boton-imagen' />
+          Configuración de admin
         </button>
       )}
 
