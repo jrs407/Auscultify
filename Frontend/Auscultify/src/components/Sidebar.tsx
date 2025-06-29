@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../Home.css';
+import './Sidebar.css';
 import auscultifyLogo from '../assets/auscultifyLogo.png';
 import libroIcon from '../assets/libro.png';
 import graficaIcon from '../assets/grafica.png';
@@ -35,6 +35,16 @@ const Sidebar: React.FC<SidebarProps> = ({ usuario, selectedButton, onButtonClic
     navigate('/login');
   };
 
+  const handleNavigation = (buttonName: string) => {
+    onButtonClick(buttonName);
+    
+    if (buttonName === 'aprender') {
+      navigate('/home', { state: { usuario } });
+    } else if (buttonName === 'perfil') {
+      navigate('/perfil', { state: { usuario } });
+    }
+  };
+
   return (
     <div className='primera-mitad'>
       <div className='primera-mitad-cuadro-logo'>
@@ -42,28 +52,28 @@ const Sidebar: React.FC<SidebarProps> = ({ usuario, selectedButton, onButtonClic
       </div>
       <button 
         className={selectedButton === 'aprender' ? (isAdmin ? 'boton-seleccionado-admin' : 'boton-seleccionado') : (isAdmin ? 'boton-normal-admin' : 'boton-normal')} 
-        onClick={() => onButtonClick('aprender')}
+        onClick={() => handleNavigation('aprender')}
       >
         <img src={libroIcon} alt="Libro" className='boton-imagen' />
         Aprender
       </button>
       <button 
         className={selectedButton === 'estadisticas' ? (isAdmin ? 'boton-seleccionado-admin' : 'boton-seleccionado') : (isAdmin ? 'boton-normal-admin' : 'boton-normal')} 
-        onClick={() => onButtonClick('estadisticas')}
+        onClick={() => handleNavigation('estadisticas')}
       >
         <img src={graficaIcon} alt="Grafica" className='boton-imagen' />
         Estadísticas
       </button>
       <button 
         className={selectedButton === 'siguiendo' ? (isAdmin ? 'boton-seleccionado-admin' : 'boton-seleccionado') : (isAdmin ? 'boton-normal-admin' : 'boton-normal')} 
-        onClick={() => onButtonClick('siguiendo')}
+        onClick={() => handleNavigation('siguiendo')}
       >
         <img src={friendshipIcon} alt="Siguiendo" className='boton-imagen' />
         Siguiendo
       </button>
       <button 
         className={selectedButton === 'perfil' ? (isAdmin ? 'boton-seleccionado-admin' : 'boton-seleccionado') : (isAdmin ? 'boton-normal-admin' : 'boton-normal')} 
-        onClick={() => onButtonClick('perfil')}
+        onClick={() => handleNavigation('perfil')}
       >
         <img src={profileIcon} alt="Perfil" className='boton-imagen' />
         Perfil
@@ -72,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ usuario, selectedButton, onButtonClic
       {isAdmin && (
         <button 
           className={selectedButton === 'admin' ? 'boton-seleccionado-admin' : 'boton-normal-admin'} 
-          onClick={() => onButtonClick('admin')}
+          onClick={() => handleNavigation('admin')}
         >
           <img src={adminIcon} alt="Admin" className='boton-imagen' />
           Configuración de admin

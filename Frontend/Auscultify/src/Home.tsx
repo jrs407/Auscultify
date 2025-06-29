@@ -43,7 +43,9 @@ const Home: React.FC = () => {
         selectedButton={selectedButton} 
         onButtonClick={handleButtonClick} 
       />
-      <div className='segunda-mitad'></div>
+      <div className='segunda-mitad'>
+        <p>HOME</p>
+      </div>
     </div>
   );
 };
