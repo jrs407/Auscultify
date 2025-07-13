@@ -227,7 +227,7 @@ const Perfil: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Account deleted successfully, redirect to login
+
         navigate('/login');
       } else {
         setDeleteError(data.mensaje || 'Error al eliminar la cuenta');
