@@ -42,6 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({ usuario, selectedButton, onButtonClic
       navigate('/home', { state: { usuario } });
     } else if (buttonName === 'perfil') {
       navigate('/perfil', { state: { usuario } });
+    } else if (buttonName === 'siguiendo') {
+      navigate('/siguiendo', { state: { usuario } });
     }
   };
 

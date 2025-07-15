@@ -3,6 +3,7 @@ import IniciarSesion from './IniciarSesion';
 import Home from './Home';
 import Perfil from './Perfil';
 import Registrarse from './Registrarse';
+import Siguiendo from './Siguiendo';
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/registrarse" element={<Registrarse />} />
+        <Route path="/siguiendo" element={<Siguiendo />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
