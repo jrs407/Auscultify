@@ -35,19 +35,29 @@ const obtenerUsuariosPublicosHandler: express.RequestHandler = async (req, res) 
     const { busqueda, usuarioActual } = req.query as { busqueda?: string; usuarioActual?: string };
 
     try {
-        let query = `SELECT correoElectronico as email 
-            FROM Usuarios 
-            WHERE esPublico = 1`;
+        let query = `SELECT u.correoElectronico as email 
+            FROM Usuarios u
+            WHERE u.esPublico = 1`;
         
         let queryParams: any[] = [];
 
         if (usuarioActual && usuarioActual.trim() !== '') {
-            query += ` AND correoElectronico != ?`;
+            query += ` AND u.correoElectronico != ?`;
+            queryParams.push(usuarioActual);
+        }
+
+        if (usuarioActual && usuarioActual.trim() !== '') {
+            query += ` AND u.idUsuario NOT IN (
+                SELECT us.idSeguido 
+                FROM Usuarios_Seguidores us 
+                JOIN Usuarios u_seguidor ON us.idSeguidor = u_seguidor.idUsuario 
+                WHERE u_seguidor.correoElectronico = ?
+            )`;
             queryParams.push(usuarioActual);
         }
 
         if (busqueda && busqueda.trim() !== '') {
-            query += ` AND correoElectronico LIKE ?`;
+            query += ` AND u.correoElectronico LIKE ?`;
             queryParams.push(`${busqueda}%`);
         }
 

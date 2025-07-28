@@ -29,6 +29,8 @@ const Siguiendo: React.FC = () => {
   const [searchResults, setSearchResults] = useState<UsuarioPublico[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [followingUser, setFollowingUser] = useState<string | null>(null);
+  const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (!usuario) {
@@ -88,11 +90,48 @@ const Siguiendo: React.FC = () => {
     }
   };
 
-  const handleUserSelect = (selectedUser: UsuarioPublico) => {
-    setSearchTerm(selectedUser.email);
-    setShowDropdown(false);
+  const seguirUsuario = async (emailSeguido: string) => {
+    setFollowingUser(emailSeguido);
+    
+    try {
+      const response = await fetch('http://localhost:3006/seguir', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailSeguidor: usuario.email,
+          emailSeguido: emailSeguido
+        }),
+      });
 
-    console.log('Usuario seleccionado:', selectedUser);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Usuario seguido exitosamente:', data.mensaje);
+        setFollowedUsers(prev => new Set([...prev, emailSeguido]));
+        
+        setSearchResults(prev => prev.filter(user => user.email !== emailSeguido));
+        
+        if (searchResults.length <= 1) {
+          setShowDropdown(false);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Error al seguir usuario:', errorData.mensaje);
+      }
+    } catch (error) {
+      console.error('Error de conexión al seguir usuario:', error);
+    } finally {
+      setFollowingUser(null);
+    }
+  };
+
+  const handleUserSelect = async (selectedUser: UsuarioPublico) => {
+    if (followedUsers.has(selectedUser.email) || followingUser === selectedUser.email) {
+      return;
+    }
+
+    await seguirUsuario(selectedUser.email);
   };
 
   const handleInputFocus = () => {
@@ -142,10 +181,18 @@ const Siguiendo: React.FC = () => {
                         searchResults.map((usuarioEncontrado, index) => (
                           <div 
                             key={index} 
-                            className="dropdown-item"
+                            className={`dropdown-item ${followingUser === usuarioEncontrado.email ? 'following' : ''} ${followedUsers.has(usuarioEncontrado.email) ? 'followed' : ''}`}
                             onClick={() => handleUserSelect(usuarioEncontrado)}
+                            style={{ 
+                              cursor: followingUser === usuarioEncontrado.email ? 'wait' : 'pointer',
+                              opacity: followingUser === usuarioEncontrado.email ? 0.7 : 1
+                            }}
                           >
-                            <p>{usuarioEncontrado.email}</p>
+                            <p>
+                              {usuarioEncontrado.email}
+                              {followingUser === usuarioEncontrado.email && ' (Siguiendo...)'}
+                              {followedUsers.has(usuarioEncontrado.email) && ' ✓'}
+                            </p>
                           </div>
                         ))
                       ) : (
