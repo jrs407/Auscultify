@@ -95,6 +95,7 @@ services:
       - database
     environment:
       - PORT=3005
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
       - DB_HOST=database
       - DB_USER=root
       - DB_PASSWORD=root
@@ -111,6 +112,23 @@ services:
       - database
     environment:
       - PORT=3006
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
+
+  obtener-siguiendo:
+    build:
+      context: ./Backend/ObtenerSiguiendo
+      dockerfile: Dockerfile
+    ports:
+      - "3007:3007"
+    depends_on:
+      - database
+    environment:
+      - PORT=3007
       - JWT_SECRET=tu_secreto_jwt_super_seguro
       - DB_HOST=database
       - DB_USER=root

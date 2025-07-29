@@ -17,6 +17,10 @@ interface LocationState {
   };
 }
 
+interface UsuarioSeguido {
+  email: string;
+}
+
 const Siguiendo: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,10 +35,14 @@ const Siguiendo: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [followingUser, setFollowingUser] = useState<string | null>(null);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
+  const [usuariosSeguidos, setUsuariosSeguidos] = useState<UsuarioSeguido[]>([]);
+  const [loadingSeguidos, setLoadingSeguidos] = useState(true);
 
   React.useEffect(() => {
     if (!usuario) {
       navigate('/login');
+    } else {
+      obtenerUsuariosSeguidos();
     }
   }, [usuario, navigate]);
 
@@ -90,6 +98,34 @@ const Siguiendo: React.FC = () => {
     }
   };
 
+  const obtenerUsuariosSeguidos = async () => {
+    if (!usuario) return;
+    
+    setLoadingSeguidos(true);
+    
+    try {
+      const response = await fetch(`http://localhost:3007/obtener-siguiendo?email=${encodeURIComponent(usuario.email)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsuariosSeguidos(data.siguiendo || []);
+      } else {
+        console.error('Error al obtener usuarios seguidos');
+        setUsuariosSeguidos([]);
+      }
+    } catch (error) {
+      console.error('Error de conexión al obtener usuarios seguidos:', error);
+      setUsuariosSeguidos([]);
+    } finally {
+      setLoadingSeguidos(false);
+    }
+  };
+
   const seguirUsuario = async (emailSeguido: string) => {
     setFollowingUser(emailSeguido);
     
@@ -112,6 +148,8 @@ const Siguiendo: React.FC = () => {
         
         setSearchResults(prev => prev.filter(user => user.email !== emailSeguido));
         
+        await obtenerUsuariosSeguidos();
+        
         if (searchResults.length <= 1) {
           setShowDropdown(false);
         }
@@ -132,6 +170,7 @@ const Siguiendo: React.FC = () => {
     }
 
     await seguirUsuario(selectedUser.email);
+    setSearchTerm('');
   };
 
   const handleInputFocus = () => {
@@ -162,7 +201,7 @@ const Siguiendo: React.FC = () => {
                 <div className='buscador-container'>
                   <input
                     type="text"
-                    placeholder="¿A quién quieres buscar?"
+                    placeholder="¡Descubre a gente nueva!"
                     value={searchTerm}
                     onChange={handleSearchChange}
                     onFocus={handleInputFocus}
@@ -206,7 +245,25 @@ const Siguiendo: React.FC = () => {
             </div>
 
             <div className='contenedor-texto'>
-              <p>De momento no estas siguiendo a nadie. <br></br> ¿Te apetece seguir a alguien? <br></br>¡Búscalo!</p>
+              {loadingSeguidos ? (
+                <p>Cargando usuarios seguidos...</p>
+              ) : usuariosSeguidos.length > 0 ? (
+                <div className='contenedor-usuarios-seguidos'>
+                  <h3>Usuarios que sigues:</h3>
+                  <div className='lista-usuarios-seguidos'>
+                    {usuariosSeguidos.map((usuarioSeguido, index) => (
+                      <div key={index} className='usuario-seguido-card'>
+                        <div className='usuario-seguido-info'>
+                          <span className='usuario-seguido-email'>{usuarioSeguido.email}</span>
+                          <button className='unfollow-button'>✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p>De momento no estas siguiendo a nadie. <br></br> ¿Te apetece seguir a alguien? <br></br>¡Búscalo!</p>
+              )}
             </div>
         </div>
       </div>
