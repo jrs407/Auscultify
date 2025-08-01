@@ -135,6 +135,23 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=mydb
       - DB_PORT=3306
+
+  eliminar-siguiendo:
+    build:
+      context: ./Backend/EliminarSiguiendo
+      dockerfile: Dockerfile
+    ports:
+      - "3008:3008"
+    depends_on:
+      - database
+    environment:
+      - PORT=3008
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
       
 volumes:
   mysql_data:

@@ -37,6 +37,7 @@ const Siguiendo: React.FC = () => {
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
   const [usuariosSeguidos, setUsuariosSeguidos] = useState<UsuarioSeguido[]>([]);
   const [loadingSeguidos, setLoadingSeguidos] = useState(true);
+  const [unfollowingUser, setUnfollowingUser] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (!usuario) {
@@ -164,6 +165,43 @@ const Siguiendo: React.FC = () => {
     }
   };
 
+  const dejarDeSeguirUsuario = async (emailSeguido: string) => {
+    setUnfollowingUser(emailSeguido);
+    
+    try {
+      const response = await fetch('http://localhost:3008/eliminar-siguiendo', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailSeguidor: usuario.email,
+          emailSeguido: emailSeguido
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Usuario no seguido exitosamente:', data.mensaje);
+
+        await obtenerUsuariosSeguidos();
+        
+        setFollowedUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(emailSeguido);
+          return newSet;
+        });
+      } else {
+        const errorData = await response.json();
+        console.error('Error al dejar de seguir usuario:', errorData.mensaje);
+      }
+    } catch (error) {
+      console.error('Error de conexión al dejar de seguir usuario:', error);
+    } finally {
+      setUnfollowingUser(null);
+    }
+  };
+
   const handleUserSelect = async (selectedUser: UsuarioPublico) => {
     if (followedUsers.has(selectedUser.email) || followingUser === selectedUser.email) {
       return;
@@ -255,7 +293,17 @@ const Siguiendo: React.FC = () => {
                       <div key={index} className='usuario-seguido-card'>
                         <div className='usuario-seguido-info'>
                           <span className='usuario-seguido-email'>{usuarioSeguido.email}</span>
-                          <button className='unfollow-button'>✕</button>
+                          <button 
+                            className='unfollow-button'
+                            onClick={() => dejarDeSeguirUsuario(usuarioSeguido.email)}
+                            disabled={unfollowingUser === usuarioSeguido.email}
+                            style={{
+                              opacity: unfollowingUser === usuarioSeguido.email ? 0.5 : 1,
+                              cursor: unfollowingUser === usuarioSeguido.email ? 'wait' : 'pointer'
+                            }}
+                          >
+                            {unfollowingUser === usuarioSeguido.email ? '...' : '✕'}
+                          </button>
                         </div>
                       </div>
                     ))}
