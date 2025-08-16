@@ -4,6 +4,7 @@ import Home from './Home';
 import Perfil from './Perfil';
 import Registrarse from './Registrarse';
 import Siguiendo from './Siguiendo';
+import PanelAdmin from './PanelAdmin';
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/registrarse" element={<Registrarse />} />
         <Route path="/siguiendo" element={<Siguiendo />} />
+        <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
