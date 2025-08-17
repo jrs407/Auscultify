@@ -29,6 +29,9 @@ const PanelAdmin: React.FC = () => {
   const [selectedCriterio, setSelectedCriterio] = useState('Elija una categoría');
   const [selectedEliminarCriterio, setSelectedEliminarCriterio] = useState('Elija una categoría');
   const [selectedEliminarPregunta, setSelectedEliminarPregunta] = useState('Elija una pregunta');
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
+  const [errorCategoria, setErrorCategoria] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const eliminarDropdownRef = useRef<HTMLDivElement>(null);
   const eliminarPreguntaDropdownRef = useRef<HTMLDivElement>(null);
@@ -120,6 +123,53 @@ const PanelAdmin: React.FC = () => {
     setIsEliminarPreguntaDropdownOpen(false);
   };
 
+  const crearCategoria = async () => {
+    setErrorCategoria('');
+    
+    if (!nuevaCategoria.trim()) {
+      setErrorCategoria('El nombre de la categoría es obligatorio');
+      return;
+    }
+
+    if (nuevaCategoria.trim().length < 2) {
+      setErrorCategoria('El nombre debe tener al menos 2 caracteres');
+      return;
+    }
+
+    if (nuevaCategoria.trim().length > 50) {
+      setErrorCategoria('El nombre no puede exceder 50 caracteres');
+      return;
+    }
+
+    setCreandoCategoria(true);
+
+    try {
+      const response = await fetch('http://localhost:3009/crear-categoria', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombreCategoria: nuevaCategoria.trim()
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNuevaCategoria('');
+        setErrorCategoria('');
+      } else {
+        setErrorCategoria(data.mensaje || 'Error al crear la categoría');
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      setErrorCategoria('Error de conexión con el servidor');
+    } finally {
+      setCreandoCategoria(false);
+    }
+  };
+
   if (!usuario) return null;
 
   return (
@@ -199,12 +249,24 @@ const PanelAdmin: React.FC = () => {
             </div>
 
             <div className='parte-central-admin-texto-boton'>
-              <input 
-                placeholder="Introduce una nueva categoría"
-                className="input-nueva-categoria"
-              />
-              <button className="boton-aceptar-categoria">
-                Crear categoría
+              <div className='contenedor-input-categoria'>
+                <input 
+                  placeholder="Introduce una nueva categoría"
+                  className={`input-nueva-categoria ${errorCategoria ? 'input-error' : ''}`}
+                  value={nuevaCategoria}
+                  onChange={(e) => setNuevaCategoria(e.target.value)}
+                  disabled={creandoCategoria}
+                />
+                {errorCategoria && (
+                  <label className="error-label">{errorCategoria}</label>
+                )}
+              </div>
+              <button 
+                className="boton-aceptar-categoria"
+                onClick={crearCategoria}
+                disabled={creandoCategoria}
+              >
+                {creandoCategoria ? 'Creando...' : 'Crear categoría'}
               </button>
             </div>
           </div>
