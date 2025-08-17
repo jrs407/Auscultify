@@ -37,14 +37,8 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
     const { nombreCategoria } = req.body as { nombreCategoria: string };
 
-    // Validación de entrada más detallada
     if (!nombreCategoria) {
         res.status(400).json({ mensaje: 'El nombre de la categoría es requerido' });
-        return;
-    }
-
-    if (typeof nombreCategoria !== 'string') {
-        res.status(400).json({ mensaje: 'El nombre de la categoría debe ser una cadena de texto' });
         return;
     }
 
@@ -65,21 +59,19 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
         return;
     }
 
-    // Validar caracteres especiales
     const caracteresValidos = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s0-9\-_.]+$/;
     if (!caracteresValidos.test(categoriaLimpia)) {
         res.status(400).json({ mensaje: 'El nombre contiene caracteres no válidos. Solo se permiten letras, números, espacios, guiones y puntos' });
         return;
     }
 
-    // Validar que no empiece o termine con espacios
     if (categoriaLimpia !== categoriaLimpia.trim()) {
         res.status(400).json({ mensaje: 'El nombre no puede empezar o terminar con espacios' });
         return;
     }
 
     try {
-        // Verificar si la categoría ya existe (insensible a mayúsculas/minúsculas)
+
         const [categoriaExistente]: any = await pool.execute(
             'SELECT idCategorias FROM Categorias WHERE LOWER(nombreCategoria) = LOWER(?)',
             [categoriaLimpia]
@@ -90,16 +82,13 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
             return;
         }
 
-        // Crear la categoría en la base de datos
         const [resultado]: any = await pool.execute(
             'INSERT INTO Categorias (nombreCategoria) VALUES (?)',
             [categoriaLimpia]
         );
 
-        // Crear la carpeta en el directorio ./Audios
         console.log('Directorio de trabajo actual:', process.cwd());
         
-        // Intentar diferentes rutas para encontrar el directorio Audios
         const posiblesRutas = [
             path.join(process.cwd(), 'Audios', categoriaLimpia),
             path.join(process.cwd(), '..', 'Audios', categoriaLimpia),
@@ -116,13 +105,11 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
                 const directorioBase = path.dirname(rutaPosible);
                 console.log(`Intentando crear directorio base: ${directorioBase}`);
                 
-                // Crear directorios padre recursivamente
                 if (!fs.existsSync(directorioBase)) {
                     fs.mkdirSync(directorioBase, { recursive: true });
                     console.log(`Directorio base creado: ${directorioBase}`);
                 }
 
-                // Crear la carpeta de la categoría
                 if (!fs.existsSync(rutaPosible)) {
                     fs.mkdirSync(rutaPosible, { recursive: true });
                     console.log(`Carpeta de categoría creada exitosamente: ${rutaPosible}`);
@@ -141,7 +128,7 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
 
         if (!carpetaCreada) {
             console.error('No se pudo crear la carpeta en ninguna ruta');
-            // Si falla la creación de la carpeta, eliminar la categoría de la base de datos
+
             try {
                 await pool.execute(
                     'DELETE FROM Categorias WHERE idCategorias = ?',
@@ -167,7 +154,7 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
     } catch (error) {
         console.error('Error al crear categoría:', error);
         
-        // Verificar tipos específicos de errores de MySQL
+
         if (error instanceof Error) {
             if (error.message.includes('Duplicate entry')) {
                 res.status(409).json({ mensaje: 'Ya existe una categoría con este nombre' });
