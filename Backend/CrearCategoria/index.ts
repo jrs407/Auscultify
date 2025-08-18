@@ -33,9 +33,125 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
     next();
 });
 
+const actualizarArchivoCategorias = async (pool: Pool) => {
+    try {
+        const [categorias]: any = await pool.execute(
+            'SELECT nombreCategoria FROM Categorias ORDER BY nombreCategoria'
+        );
+
+        const rutaAudios = path.join(process.cwd(), 'Audios');
+        const rutaArchivoCategorias = path.join(rutaAudios, 'categorias.txt');
+
+        const contenido = categorias.map((cat: any) => cat.nombreCategoria).join('\n');
+        
+        fs.writeFileSync(rutaArchivoCategorias, contenido, 'utf8');
+        
+        console.log(`Archivo categorias.txt actualizado con ${categorias.length} categorías`);
+
+    } catch (error) {
+        console.error('Error al actualizar archivo de categorías:', error);
+    }
+};
+
+const leerCategoriasDeArchivo = (): string[] => {
+    try {
+        const rutaAudios = path.join(process.cwd(), 'Audios');
+        const rutaArchivoCategorias = path.join(rutaAudios, 'categorias.txt');
+
+        if (fs.existsSync(rutaArchivoCategorias)) {
+            const contenido = fs.readFileSync(rutaArchivoCategorias, 'utf8');
+            const categorias = contenido
+                .split('\n')
+                .map(linea => linea.trim())
+                .filter(linea => linea.length > 0);
+
+            console.log(`Total de categorías encontradas: ${categorias.length}`);
+            return categorias;
+        } else {
+            console.log(`No se encontró el archivo categorias.txt en: ${rutaArchivoCategorias}`);
+            return [];
+        }
+    } catch (error) {
+        console.log('Error leyendo archivo categorias.txt:', error);
+        return [];
+    }
+};
+
+const sincronizarCategoriasDeArchivo = async (pool: Pool) => {
+    try {
+        const categoriasArchivo = leerCategoriasDeArchivo();
+        
+        if (categoriasArchivo.length === 0) {
+            console.log('No hay categorías para sincronizar');
+            return;
+        }
+
+        const [categoriasExistentes]: any = await pool.execute(
+            'SELECT nombreCategoria FROM Categorias'
+        );
+        
+        const nombresExistentes = new Set(
+            categoriasExistentes.map((cat: any) => cat.nombreCategoria)
+        );
+
+        for (const categoria of categoriasArchivo) {
+ 
+            if (nombresExistentes.has(categoria)) {
+                console.log(`Categoría ya existe: "${categoria}"`);
+                continue;
+            }
+
+            try {
+                await pool.execute(
+                    'INSERT INTO Categorias (nombreCategoria) VALUES (?)',
+                    [categoria]
+                );
+
+                const posiblesRutas = [
+                    path.join(process.cwd(), 'Audios', categoria),
+                    path.join(process.cwd(), '..', 'Audios', categoria),
+                    path.join(process.cwd(), '..', '..', 'Audios', categoria),
+                    path.join('/app', 'Audios', categoria),
+                    path.join('/Audios', categoria)
+                ];
+
+                let carpetaCreada = false;
+                for (const rutaPosible of posiblesRutas) {
+                    try {
+                        const directorioBase = path.dirname(rutaPosible);
+                        if (!fs.existsSync(directorioBase)) {
+                            fs.mkdirSync(directorioBase, { recursive: true });
+                        }
+
+                        if (!fs.existsSync(rutaPosible)) {
+                            fs.mkdirSync(rutaPosible, { recursive: true });
+                        }
+                        
+                        carpetaCreada = true;
+                        break;
+                    } catch (error) {
+                        continue;
+                    }
+                }
+                
+                nombresExistentes.add(categoria);
+
+
+            } catch (error) {
+                console.error(`Error al agregar categoría "${categoria}":`, error);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error en sincronización de categorías:', error);
+    }
+};
+
 const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
     const { nombreCategoria } = req.body as { nombreCategoria: string };
+
+    await sincronizarCategoriasDeArchivo(pool);
 
     if (!nombreCategoria) {
         res.status(400).json({ mensaje: 'El nombre de la categoría es requerido' });
@@ -151,6 +267,8 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
             }
         });
 
+    await actualizarArchivoCategorias(pool);
+
     } catch (error) {
         console.error('Error al crear categoría:', error);
         
@@ -173,6 +291,6 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
 app.post('/crear-categoria', crearCategoriaHandler);
 
 const PORT = process.env.PORT || 3009;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`CrearCategoria service running on port ${PORT}`);
 });
