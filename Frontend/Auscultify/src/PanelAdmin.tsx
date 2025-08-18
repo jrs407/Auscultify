@@ -18,6 +18,11 @@ interface LocationState {
   };
 }
 
+interface Categoria {
+  idCategorias: number;
+  nombreCategoria: string;
+}
+
 const PanelAdmin: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,21 +37,11 @@ const PanelAdmin: React.FC = () => {
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [errorCategoria, setErrorCategoria] = useState('');
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const eliminarDropdownRef = useRef<HTMLDivElement>(null);
   const eliminarPreguntaDropdownRef = useRef<HTMLDivElement>(null);
-
-  const criterios = [
-    'Criterio 1',
-    'Criterio 2', 
-    'Criterio 3',
-    'Criterio 4',
-    'Criterio 5',
-    'Criterio 6',
-    'Criterio 7',
-    'Criterio 8',
-    'Criterio 9'
-  ];
 
   const preguntas = [
     'Pregunta 1',
@@ -60,9 +55,31 @@ const PanelAdmin: React.FC = () => {
     'Pregunta 9'
   ];
 
+  const obtenerCategorias = async () => {
+    try {
+      setCargandoCategorias(true);
+      const response = await fetch('http://localhost:3010/obtener-categorias');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCategorias(data.categorias || []);
+      } else {
+        console.error('Error al obtener categorías:', response.statusText);
+        setCategorias([]);
+      }
+    } catch (error) {
+      console.error('Error de conexión al obtener categorías:', error);
+      setCategorias([]);
+    } finally {
+      setCargandoCategorias(false);
+    }
+  };
+
   React.useEffect(() => {
     if (!usuario) {
       navigate('/login');
+    } else {
+      obtenerCategorias();
     }
   }, [usuario, navigate]);
 
@@ -96,8 +113,8 @@ const PanelAdmin: React.FC = () => {
     
   };
 
-  const handleCriterioSelect = (criterio: string) => {
-    setSelectedCriterio(criterio);
+  const handleCriterioSelect = (categoria: Categoria) => {
+    setSelectedCriterio(categoria.nombreCategoria);
     setIsDropdownOpen(false);
   };
 
@@ -113,8 +130,8 @@ const PanelAdmin: React.FC = () => {
     setIsEliminarPreguntaDropdownOpen(!isEliminarPreguntaDropdownOpen);
   };
 
-  const handleEliminarCriterioSelect = (criterio: string) => {
-    setSelectedEliminarCriterio(criterio);
+  const handleEliminarCriterioSelect = (categoria: Categoria) => {
+    setSelectedEliminarCriterio(categoria.nombreCategoria);
     setIsEliminarDropdownOpen(false);
   };
 
@@ -159,6 +176,7 @@ const PanelAdmin: React.FC = () => {
       if (response.ok) {
         setNuevaCategoria('');
         setErrorCategoria('');
+        await obtenerCategorias();
       } else {
         setErrorCategoria(data.mensaje || 'Error al crear la categoría');
       }
@@ -204,20 +222,26 @@ const PanelAdmin: React.FC = () => {
                     className="cabecera-desplegable-superior"
                     onClick={toggleDropdown}
                   >
-                    <span>{selectedCriterio}</span>
+                    <span>{cargandoCategorias ? 'Cargando...' : selectedCriterio}</span>
                     <span className={`flecha-desplegable ${isDropdownOpen ? 'open' : ''}`}>▼</span>
                   </div>
-                  {isDropdownOpen && (
+                  {isDropdownOpen && !cargandoCategorias && (
                     <div className="desplegable-list">
-                      {criterios.map((criterio, index) => (
-                        <div
-                          key={index}
-                          className="desplegable-item"
-                          onClick={() => handleCriterioSelect(criterio)}
-                        >
-                          {criterio}
+                      {categorias.length === 0 ? (
+                        <div className="desplegable-item" style={{ color: '#888', cursor: 'default' }}>
+                          No hay categorías disponibles
                         </div>
-                      ))}
+                      ) : (
+                        categorias.map((categoria) => (
+                          <div
+                            key={categoria.idCategorias}
+                            className="desplegable-item"
+                            onClick={() => handleCriterioSelect(categoria)}
+                          >
+                            {categoria.nombreCategoria}
+                          </div>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
@@ -282,20 +306,26 @@ const PanelAdmin: React.FC = () => {
                     className="cabecera-desplegable-superior"
                     onClick={toggleEliminarDropdown}
                   >
-                    <span>{selectedEliminarCriterio}</span>
+                    <span>{cargandoCategorias ? 'Cargando...' : selectedEliminarCriterio}</span>
                     <span className={`flecha-desplegable ${isEliminarDropdownOpen ? 'open' : ''}`}>▼</span>
                   </div>
-                  {isEliminarDropdownOpen && (
+                  {isEliminarDropdownOpen && !cargandoCategorias && (
                     <div className="desplegable-list-eliminar">
-                      {criterios.map((criterio, index) => (
-                        <div
-                          key={index}
-                          className="desplegable-item"
-                          onClick={() => handleEliminarCriterioSelect(criterio)}
-                        >
-                          {criterio}
+                      {categorias.length === 0 ? (
+                        <div className="desplegable-item" style={{ color: '#888', cursor: 'default' }}>
+                          No hay categorías disponibles
                         </div>
-                      ))}
+                      ) : (
+                        categorias.map((categoria) => (
+                          <div
+                            key={categoria.idCategorias}
+                            className="desplegable-item"
+                            onClick={() => handleEliminarCriterioSelect(categoria)}
+                          >
+                            {categoria.nombreCategoria}
+                          </div>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
