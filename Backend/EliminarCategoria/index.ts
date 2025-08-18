@@ -119,7 +119,6 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
             return;
         }
 
-        // Obtener las preguntas asociadas a esta categoría
         const [preguntasAsociadas]: any = await connection.execute(
             'SELECT idPregunta FROM Preguntas WHERE Categorias_idCategorias = ?',
             [categoriaParaEliminar.idCategorias]
@@ -128,7 +127,7 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
         let preguntasEliminadas = 0;
         
         if (preguntasAsociadas.length > 0) {
-            // Eliminar respuestas de usuarios para cada pregunta
+
             for (const pregunta of preguntasAsociadas) {
                 await connection.execute(
                     'DELETE FROM Usuarios_has_Preguntas WHERE Preguntas_idPregunta = ?',
@@ -136,7 +135,6 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
                 );
             }
 
-            // Eliminar todas las preguntas de la categoría
             const [resultadoPreguntas]: any = await connection.execute(
                 'DELETE FROM Preguntas WHERE Categorias_idCategorias = ?',
                 [categoriaParaEliminar.idCategorias]
@@ -145,7 +143,6 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
             preguntasEliminadas = resultadoPreguntas.affectedRows;
         }
 
-        // Eliminar la categoría
         await connection.execute(
             'DELETE FROM Categorias WHERE idCategorias = ?',
             [categoriaParaEliminar.idCategorias]
@@ -154,14 +151,12 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
         await connection.commit();
         connection.release();
 
-        // Eliminar la carpeta del sistema de archivos
         const carpetaEliminada = eliminarCarpetaCategoria(categoriaParaEliminar.nombreCategoria);
         
         if (!carpetaEliminada) {
             console.warn(`No se pudo eliminar la carpeta para la categoría: ${categoriaParaEliminar.nombreCategoria}`);
         }
 
-        // Actualizar el archivo de categorías
         await actualizarArchivoCategorias(pool);
 
         res.status(200).json({

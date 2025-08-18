@@ -5,7 +5,7 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 
 const app = express();
-// Permitir cualquier origen y credenciales para pruebas locales
+
 app.use(cors({
     origin: true,
     credentials: true
@@ -16,7 +16,6 @@ app.use((req, res, next) => {
 });
 app.use(express.json());
 
-// Crear el pool de conexiones MySQL usando variables de entorno
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -28,7 +27,6 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Middleware para inyectar el pool en cada request
 app.use((req: Request, _res: Response, next: NextFunction) => {
     (req as any).db = pool;
     next();
@@ -41,7 +39,6 @@ const iniciarSesionHandler: express.RequestHandler = async (req, res) => {
         contrasena: string;
     };
 
-    // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(usuario)) {
         res.status(400).json({ mensaje: 'Dirección de correo electrónico no válida' });
@@ -49,7 +46,7 @@ const iniciarSesionHandler: express.RequestHandler = async (req, res) => {
     }
 
     try {
-        // Busca por correoElectronico igual a usuario
+
         const [rows]: any = await pool.execute(
             'SELECT * FROM Usuarios WHERE correoElectronico = ?',
             [usuario]
@@ -88,11 +85,9 @@ const iniciarSesionHandler: express.RequestHandler = async (req, res) => {
     }
 };
 
-// Ruta para iniciar sesión
 app.post('/login', iniciarSesionHandler);
 
-// Arrancar el servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Auth service running on port ${PORT}`);
 });

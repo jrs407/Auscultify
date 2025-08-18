@@ -1,6 +1,3 @@
 Cardíaco
-Prueba1
-Prueba2
-Prueba3
-Prueba4
+Gástrico
 Pulmonar
