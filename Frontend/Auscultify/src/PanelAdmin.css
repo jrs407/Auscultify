@@ -442,6 +442,13 @@ display: flex;
     border: 0.20vw solid #2E7BA8;
 }
 
+.boton-eliminar-categoria:disabled {
+    background-color: #6A82B1;
+    border: 0.20vw solid #5A7299;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 .boton-eliminar-pregunta {
     height: 5vh;
     width: 7vw;
@@ -466,4 +473,168 @@ display: flex;
 
 .relleno{
     height: 9vh;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.overlay-fade-in {
+    animation: overlayFadeIn 0.3s ease-in-out forwards;
+}
+
+.overlay-fade-out {
+    animation: overlayFadeOut 0.3s ease-in-out forwards;
+}
+
+.overlay-content {
+    width: 80vh;
+    height: 35vh;
+    background-color: #3B1010;
+    border: 1vh solid #611D1D;
+    border-radius: 2vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3vh;
+    text-align: center;
+}
+
+.content-fade-in {
+    animation: contentFadeIn 0.3s ease-in-out forwards;
+}
+
+.content-fade-out {
+    animation: contentFadeOut 0.3s ease-in-out forwards;
+}
+
+.overlay-content h2 {
+    color: #ffffff;
+    font-size: 3vh;
+    font-weight: bold;
+    margin-bottom: 2vh;
+    margin-top: 0;
+}
+
+.overlay-content p {
+    color: #ffffff;
+    font-size: 2.2vh;
+    margin-bottom: 4vh;
+    line-height: 1.4;
+}
+
+.overlay-buttons {
+    display: flex;
+    gap: 3vh;
+}
+
+.overlay-cancel {
+    height: 5vh;
+    width: 15vh;
+    background-color: #ffffff;
+    border: 0.20vw solid #cccccc;
+    border-radius: 1vh;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333333;
+    font-size: 2vh;
+    font-weight: bold;
+    box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.overlay-cancel:hover {
+    background-color: #e0e0e0;
+    border: 0.20vw solid #999999;
+}
+
+.overlay-cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.overlay-confirm {
+    height: 5vh;
+    width: 15vh;
+    background-color: #C43D2E;
+    border: 0.20vw solid #700606;
+    border-radius: 1vh;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2vh;
+    font-weight: bold;
+    box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.overlay-confirm:hover {
+    background-color: #d94b3c;
+    border: 0.20vw solid #8a0808;
+}
+
+.overlay-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #ff4444;
+    font-size: 1.8vh;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes overlayFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes contentFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
 }

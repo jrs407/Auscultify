@@ -39,6 +39,11 @@ const PanelAdmin: React.FC = () => {
   const [errorCategoria, setErrorCategoria] = useState('');
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
+  const [eliminandoCategoria, setEliminandoCategoria] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState('');
+  const [showDeleteOverlay, setShowDeleteOverlay] = useState(false);
+  const [overlayAnimating, setOverlayAnimating] = useState(false);
+  const [categoriaParaEliminar, setCategoriaParaEliminar] = useState<Categoria | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const eliminarDropdownRef = useRef<HTMLDivElement>(null);
   const eliminarPreguntaDropdownRef = useRef<HTMLDivElement>(null);
@@ -188,6 +193,66 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  const eliminarCategoria = async () => {
+    setErrorEliminar('');
+  
+    const categoriaSeleccionada = categorias.find(cat => cat.nombreCategoria === selectedEliminarCriterio);
+    if (!categoriaSeleccionada) {
+      setErrorEliminar('Categoría no encontrada');
+      return;
+    }
+
+    setCategoriaParaEliminar(categoriaSeleccionada);
+    setShowDeleteOverlay(true);
+    setOverlayAnimating(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoriaParaEliminar) return;
+
+    setEliminandoCategoria(true);
+
+    try {
+      const response = await fetch('http://localhost:3011/eliminar-categoria', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idCategoria: categoriaParaEliminar.idCategorias,
+          nombreCategoria: categoriaParaEliminar.nombreCategoria
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSelectedEliminarCriterio('Elija una categoría');
+        setErrorEliminar('');
+
+        handleCancelDelete();
+
+        await obtenerCategorias();
+      } else {
+        setErrorEliminar(data.mensaje || 'Error al eliminar la categoría');
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      setErrorEliminar('Error de conexión con el servidor');
+    } finally {
+      setEliminandoCategoria(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setErrorEliminar('');
+    setOverlayAnimating(false);
+    setTimeout(() => {
+      setShowDeleteOverlay(false);
+      setCategoriaParaEliminar(null);
+    }, 300);
+  };
+
   if (!usuario) return null;
 
   return (
@@ -329,9 +394,16 @@ const PanelAdmin: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {errorEliminar && (
+                  <label className="error-label" style={{ fontSize: '12px', marginTop: '5px' }}>{errorEliminar}</label>
+                )}
               </div>
-              <button className="boton-eliminar-categoria">
-                Eliminar
+              <button 
+                className="boton-eliminar-categoria"
+                onClick={eliminarCategoria}
+                disabled={eliminandoCategoria}
+              >
+                {eliminandoCategoria ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
 
@@ -371,6 +443,41 @@ const PanelAdmin: React.FC = () => {
 
         </div>
       </div>
+
+      {showDeleteOverlay && (
+        <div className={`overlay ${overlayAnimating ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
+          <div className={`overlay-content ${overlayAnimating ? 'content-fade-in' : 'content-fade-out'}`}>
+            <h2>¿Seguro que quieres eliminar la categoría?</h2>
+            <p>
+              Se eliminará la categoría "<strong>{categoriaParaEliminar?.nombreCategoria}</strong>" y todas sus preguntas asociadas.
+              <br />
+              <br />
+              Esta acción no se puede deshacer.
+            </p>
+            {errorEliminar && (
+              <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
+                {errorEliminar}
+              </div>
+            )}
+            <div className="overlay-buttons">
+              <button 
+                className="overlay-cancel" 
+                onClick={handleCancelDelete}
+                disabled={eliminandoCategoria}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="overlay-confirm" 
+                onClick={handleConfirmDelete}
+                disabled={eliminandoCategoria}
+              >
+                {eliminandoCategoria ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
