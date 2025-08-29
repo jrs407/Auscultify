@@ -62,6 +62,16 @@ display: flex;
     border-color: #609dc4;
 }
 
+.upload-button.uploaded {
+    background-color: #4CAF50;
+    border-color: #45A049;
+}
+
+.upload-button.uploaded:hover {
+    background-color: #45A049;
+    border-color: #3D8B40;
+}
+
 .upload-button-icon {
     height: 3vh;
     width: auto;

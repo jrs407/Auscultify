@@ -209,6 +209,25 @@ services:
       - DB_PORT=3306
     volumes:
       - ./Audios:/app/Audios
+
+  gestionar-preguntas:
+    build: 
+      context: ./Backend/GestionarPreguntas
+      dockerfile: Dockerfile
+    ports:
+      - "3012:3012"
+    depends_on:
+      - database
+    environment:
+      - PORT=3012
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
+    volumes:
+      - ./Audios:/app/Audios
       
 volumes:
   mysql_data:

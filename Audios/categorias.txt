@@ -1,3 +1,5 @@
-Cardíaco
-Gástrico
+Abdominal
+Cardiaco
+Patata
+Prueba
 Pulmonar
