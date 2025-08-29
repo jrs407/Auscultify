@@ -407,6 +407,12 @@ display: flex;
     height:100%;
 }
 
+.parte-inferior-admin-derecha > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 1vh;
+}
+
 .parte-inferior-admin-izquierda p,
 .parte-inferior-admin-derecha p {
     color: #ffffff;

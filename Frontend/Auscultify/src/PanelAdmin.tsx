@@ -26,6 +26,7 @@ interface Categoria {
 interface Pregunta {
   idPregunta: number;
   rutaAudio: string;
+  audioUrl: string;
   respuestaCorrecta: string;
   nombreCategoria: string;
   idCategorias: number;
@@ -63,6 +64,7 @@ const PanelAdmin: React.FC = () => {
   const eliminarDropdownRef = useRef<HTMLDivElement>(null);
   const eliminarPreguntaDropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [showDeletePreguntaOverlay, setShowDeletePreguntaOverlay] = useState(false);
   const [preguntaOverlayAnimating, setPreguntaOverlayAnimating] = useState(false);
   const [preguntaParaEliminar, setPreguntaParaEliminar] = useState<Pregunta | null>(null);
@@ -213,8 +215,20 @@ const PanelAdmin: React.FC = () => {
   };
 
   const handleEliminarPreguntaSelect = (pregunta: string) => {
+    // Stop current audio immediately before switching
+    stopAudio();
+    
     setSelectedEliminarPregunta(pregunta);
     setIsEliminarPreguntaDropdownOpen(false);
+    
+    // Find the selected question and play its audio with minimal delay
+    const preguntaSeleccionada = preguntas.find(p => p.respuestaCorrecta === pregunta);
+    if (preguntaSeleccionada && preguntaSeleccionada.audioUrl) {
+      // Use setTimeout with minimal delay to ensure state update completes
+      setTimeout(() => {
+        playQuestionAudio(preguntaSeleccionada.audioUrl);
+      }, 50);
+    }
   };
 
   const crearCategoria = async () => {
@@ -448,6 +462,57 @@ const PanelAdmin: React.FC = () => {
       setPreguntaParaEliminar(null);
     }, 300);
   };
+
+  const playQuestionAudio = (audioUrl: string) => {
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'auto';
+      audioRef.current.volume = 0.7;
+      audioRef.current.src = audioUrl;
+
+      audioRef.current.onerror = (e) => {
+        console.error('Error al cargar audio:', e);
+        console.error('URL del audio:', audioUrl);
+      };
+
+      audioRef.current.load();
+      
+      const playPromise = audioRef.current.play();
+      
+      playPromise.then(() => {
+        console.log('Audio reproducido exitosamente');
+      }).catch(error => {
+        console.error('Error al reproducir audio:', error);
+        console.error('URL del audio:', audioUrl);
+      });
+
+    } catch (error) {
+      console.error('Error al crear elemento de audio:', error);
+      console.error('URL del audio:', audioUrl);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopAudio();
+    };
+  }, []);
 
   if (!usuario) return null;
 

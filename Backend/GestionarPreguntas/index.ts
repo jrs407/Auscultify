@@ -18,6 +18,8 @@ app.use((req, res, next) => {
 });
 app.use(express.json());
 
+app.use('/audio', express.static(path.join(process.cwd(), 'Audios')));
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
@@ -243,9 +245,14 @@ const obtenerPreguntasHandler: express.RequestHandler = async (req, res) => {
 
         const [preguntas]: any = await pool.execute(query, params);
 
+        const protocol = req.get('x-forwarded-proto') || 'http';
+        const host = req.get('host') || `localhost:${process.env.PORT || 3012}`;
+        const baseUrl = `${protocol}://${host}`;
+        
         const preguntasFormateadas = preguntas.map((pregunta: any) => ({
             idPregunta: pregunta.idPregunta,
             rutaAudio: pregunta.urlAudio,
+            audioUrl: `${baseUrl}/audio/${pregunta.urlAudio.replace(/\\/g, '/')}`,
             respuestaCorrecta: pregunta.respuestaCorrecta,
             nombreCategoria: pregunta.nombreCategoria,
             idCategorias: pregunta.idCategorias
