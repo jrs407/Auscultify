@@ -5,6 +5,7 @@ import Perfil from './Perfil';
 import Registrarse from './Registrarse';
 import Siguiendo from './Siguiendo';
 import PanelAdmin from './PanelAdmin';
+import ResponderPregunta from './ResponderPregunta';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/registrarse" element={<Registrarse />} />
         <Route path="/siguiendo" element={<Siguiendo />} />
         <Route path="/admin" element={<PanelAdmin />} />
+        <Route path="/responder-pregunta" element={<ResponderPregunta />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

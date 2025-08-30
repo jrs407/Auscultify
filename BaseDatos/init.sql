@@ -122,10 +122,9 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Usuarios_has_Preguntas` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-
--- Inserta un criterio por defecto si no existe
+-- Inserta criterios.
 INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
-VALUES (1, 'Criterio por defecto', 'Default')
+VALUES (1, 'Elige aleatoriamente las preguntas sin tomar en cuenta datos de otros usuarios o datos personales.', 'Aleatorio simple')
 ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
 
 
