@@ -35,7 +35,6 @@ const Registrarse: React.FC = () => {
                 return;
             }
 
-            // Registro exitoso, redirigir al home
             navigate('/home', { state: { usuario: data.usuario } });
 
         } catch {
