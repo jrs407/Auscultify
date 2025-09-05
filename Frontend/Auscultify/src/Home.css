@@ -122,3 +122,29 @@
 .desplegable-list-home::-webkit-scrollbar-thumb:hover {
     background-color: #8FA4D3;
 }
+
+.descripcion-container {
+    position: relative;
+}
+
+.descripcion {
+    position: fixed;
+    background-color: #2C3E50;
+    border: 0.3vh solid #6A82B1;
+    border-radius: 0.8vh;
+    padding: 1.5vh;
+    color: #ffffff;
+    font-size: 1.6vh;
+    font-weight: normal;
+    width: 35vw;
+    max-width: 45vh;
+    z-index: 1500;
+    box-shadow: 0 0.5vh 1.5vh rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.desplegable-item-home-with-descripcion {
+    position: relative;
+}

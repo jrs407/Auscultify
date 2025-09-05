@@ -228,6 +228,23 @@ services:
       - DB_PORT=3306
     volumes:
       - ./Audios:/app/Audios
+
+  obtener-algoritmos:
+    build: 
+      context: ./Backend/ObtenerAlgoritmos
+      dockerfile: Dockerfile
+    ports:
+      - "3013:3013"
+    depends_on:
+      - database
+    environment:
+      - PORT=3013
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
       
 volumes:
   mysql_data:

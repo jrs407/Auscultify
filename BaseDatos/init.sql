@@ -127,6 +127,37 @@ INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, 
 VALUES (1, 'Elige aleatoriamente las preguntas sin tomar en cuenta datos de otros usuarios o datos personales.', 'Aleatorio simple')
 ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
 
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (2, 'Elige aleatoriamente preguntas que no has hecho. Si no hay preguntas sin hacer, se eligira las que más tiempo lleve sin hacerse.', 'Preguntas que no has hecho')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (3, 'Elige aleatoriamente una pregunta de una categoria en concreto.', 'Categoria concreta')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (4, 'Te pone automaticamente preguntas de la categoria que peor se te da.', 'Categoria que peor se te da')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (5, 'Te pone automaticamente preguntas de la categoria que mejor se te da.', 'Categoria que mejor se te da')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (6, 'Te pone preguntas que has fallado previamente en el pasado priorizando las que mas te equivocas.', 'Preguntas que tiendes a fallar')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (7, 'Te pone preguntas que has acertado previamente en el pasado priorizando las que mas aciertas.', 'Preguntas que tiendes a acertar')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (8, 'Te pone preguntas que otros usuarios en la aplicacion similares a ti han fallado.', 'Preguntas que otros usuarios similares fallan')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (9, 'Te pone preguntas que otros usuarios en la aplicacion similares a ti han acertado.', 'Preguntas que otros usuarios similares aciertan')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
