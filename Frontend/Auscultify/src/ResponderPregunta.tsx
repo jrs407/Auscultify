@@ -93,26 +93,26 @@ const ResponderPregunta: React.FC = () => {
 
 
       audioRef.current.onloadstart = () => {
-        console.log('Audio loading started');
+        console.log('Cargando audio...');
       };
 
       audioRef.current.oncanplay = () => {
-        console.log('Audio can start playing');
+        console.log('El audio puede empezar a reproducirse');
       };
 
       audioRef.current.onplay = () => {
         setEstaReproduciendose(true);
-        console.log('Audio started playing');
+        console.log('El audio ha comenzado a reproducirse');
       };
 
       audioRef.current.onended = () => {
         setEstaReproduciendose(false);
-        console.log('Audio finished playing');
+        console.log('El audio ha terminado de reproducirse');
       };
 
       audioRef.current.onerror = (e) => {
         setEstaReproduciendose(false);
-        console.error('Error playing audio:', e);
+        console.error('Error:', e);
       };
 
       audioRef.current.onpause = () => {
@@ -125,15 +125,15 @@ const ResponderPregunta: React.FC = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('Audio playback started successfully');
+            console.log('El audio ha comenzado a reproducirse');
           })
           .catch(error => {
-            console.error('Error starting audio playbook:', error);
+            console.error('Error:', error);
             setEstaReproduciendose(false);
           });
       }
     } catch (error) {
-      console.error('Error creating audio element:', error);
+      console.error('Error:', error);
       setEstaReproduciendose(false);
     }
   };
@@ -148,6 +148,56 @@ const ResponderPregunta: React.FC = () => {
       }
     };
   }, []);
+
+  const handleSiguientePregunta = () => {
+    setBotonActivado(false);
+    setBotonClickeado(null);
+    setRespuestaCorrecta(false);
+    setRespuestaFallada(false);
+    
+    if (numeroPregunta < 10) {
+      setNumeroPregunta(prev => prev + 1);
+      console.log(`Avanzando a pregunta ${numeroPregunta + 1}`);
+    } else {
+      console.log('Terminando cuestionario, navegando a resultados...');
+      console.log('Preguntas acertadas:', preguntasAcertadas);
+
+      setTimeout(() => {
+        navigate('/resultado', { 
+          state: { 
+            usuario,
+            preguntasAcertadas,
+            preguntasTotales: 10
+          } 
+        });
+      }, 100);
+    }
+  };
+
+  const handleSaltarPregunta = () => {
+    console.log('Pregunta saltada');
+    setBotonActivado(false);
+    setBotonClickeado(null);
+    setRespuestaCorrecta(false);
+    setRespuestaFallada(false);
+    
+    if (numeroPregunta < 10) {
+      setNumeroPregunta(prev => prev + 1);
+      console.log(`Saltando a pregunta ${numeroPregunta + 1}`);
+    } else {
+      console.log('Última pregunta saltada, navegando a resultados...');
+      
+      setTimeout(() => {
+        navigate('/resultado', { 
+          state: { 
+            usuario,
+            preguntasAcertadas,
+            preguntasTotales: 10
+          } 
+        });
+      }, 100);
+    }
+  };
 
   const handleSeleccionarRespuesta = (buttonNumber: number) => {
     if (botonActivado) return;
@@ -164,29 +214,6 @@ const ResponderPregunta: React.FC = () => {
       setRespuestaCorrecta(false);
       setRespuestaFallada(true);
       console.log('Respuesta incorrecta!');
-    }
-  };
-
-  const handleSaltarPregunta = () => {
-    console.log('Pregunta saltada');
-    setBotonActivado(false);
-    setBotonClickeado(null);
-    setRespuestaCorrecta(false);
-    setRespuestaFallada(false);
-    
-    if (numeroPregunta < 10) {
-      setNumeroPregunta(prev => prev + 1);
-    }
-  };
-
-  const handleSiguientePregunta = () => {
-    setBotonActivado(false);
-    setBotonClickeado(null);
-    setRespuestaCorrecta(false);
-    setRespuestaFallada(false);
-    
-    if (numeroPregunta < 10) {
-      setNumeroPregunta(prev => prev + 1);
     }
   };
 
