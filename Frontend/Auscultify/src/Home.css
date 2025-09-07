@@ -148,3 +148,109 @@
 .desplegable-item-home-with-descripcion {
     position: relative;
 }
+
+.contenedor-desplegable-categoria-home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10vh;
+    width: 100%;
+}
+
+.desplegable-categoria-home {
+    position: relative;
+    width: 55vw;
+}
+
+.cabecera-desplegable-categoria-home {
+    height: 6vh;
+    background-color: #425067;
+    border: 0.5vh solid #6A82B1;
+    border-radius: 1.2vh;
+    color: #ffffff;
+    font-size: 2vh;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5vh;
+    box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.cabecera-desplegable-categoria-home:hover {
+    background-color: #4F5E7A;
+    border-color: #8FA4D3;
+}
+
+.flecha-desplegable-categoria-home {
+    transition: transform 0.3s ease;
+    font-size: 2.5vh;
+}
+
+.flecha-desplegable-categoria-home.open {
+    transform: rotate(180deg);
+}
+
+.desplegable-list-categoria-home {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-top: -1vh;
+    background-color: #425067;
+    border: 0.5vh solid #6A82B1;
+    border-top: none;
+    border-radius: 0 0 1.2vh 1.2vh;
+    max-height: 50vh;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.3);
+}
+
+.desplegable-item-categoria-home {
+    padding: 1.5vh;
+    color: #ffffff;
+    font-size: 1.8vh;
+    font-weight: normal;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 0.1vh solid #395265;
+}
+
+.desplegable-item-categoria-home:last-child {
+    border-bottom: none;
+}
+
+.desplegable-item-categoria-home:hover {
+    background-color: #4F5E7A;
+}
+
+.desplegable-list-categoria-home::-webkit-scrollbar {
+    width: 0.6vh;
+}
+
+.desplegable-list-categoria-home::-webkit-scrollbar-track {
+    background-color: #33414B;
+}
+
+.desplegable-list-categoria-home::-webkit-scrollbar-thumb {
+    background-color: #6A82B1;
+    border-radius: 0.3vh;
+}
+
+.desplegable-list-categoria-home::-webkit-scrollbar-thumb:hover {
+    background-color: #8FA4D3;
+}
+
+.contenedor-desplegable-categoria-home.hidden {
+  display: none;
+}
+
+.contenedor-desplegable-categoria-home.visible {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 10vh;
+  width: 100%;
+}

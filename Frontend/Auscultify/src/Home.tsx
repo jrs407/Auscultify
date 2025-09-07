@@ -23,18 +23,30 @@ interface Algoritmo {
   tituloCriterio: string;
 }
 
+interface Categoria {
+  idCategorias: number;
+  nombreCategoria: string;
+}
+
 const Home: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const usuario = (location.state as LocationState)?.usuario;
   const [selectedButton, setSelectedButton] = useState('aprender');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCategoriaDropdownOpen, setIsCategoriaDropdownOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('Selecciona que quieres estudiar.');
+  const [selectedCategoria, setSelectedCategoria] = useState('Selecciona una categoría.');
   const [algoritmos, setAlgoritmos] = useState<Algoritmo[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cargandoAlgoritmos, setCargandoAlgoritmos] = useState(true);
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [descripcionVisible, setDescripcionVisible] = useState<number | null>(null);
   const [descripcionPosition, setDescripcionPosition] = useState({ x: 0, y: 0 });
+  const [algoritmoSeleccionado, setAlgoritmoSeleccionado] = useState<Algoritmo | null>(null);
+  const [mostrarCategoriaParaAlgoritmo3, setMostrarCategoriaParaAlgoritmo3] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const categoriaDropdownRef = useRef<HTMLDivElement>(null);
 
   const obtenerAlgoritmos = async () => {
     try {
@@ -56,11 +68,32 @@ const Home: React.FC = () => {
     }
   };
 
+  const obtenerCategorias = async () => {
+    try {
+      setCargandoCategorias(true);
+      const response = await fetch('http://localhost:3010/obtener-categorias');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCategorias(data.categorias || []);
+      } else {
+        console.error('Error al obtener categorías:', response.statusText);
+        setCategorias([]);
+      }
+    } catch (error) {
+      console.error('Error de conexión al obtener categorías:', error);
+      setCategorias([]);
+    } finally {
+      setCargandoCategorias(false);
+    }
+  };
+
   React.useEffect(() => {
     if (!usuario) {
       navigate('/login');
     } else {
       obtenerAlgoritmos();
+      obtenerCategorias();
     }
   }, [usuario, navigate]);
 
@@ -68,30 +101,68 @@ const Home: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+
+        setDescripcionVisible(null);
+      }
+      if (categoriaDropdownRef.current && !categoriaDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoriaDropdownOpen(false);
       }
     };
 
-    if (isDropdownOpen) {
+    if (isDropdownOpen || isCategoriaDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen]);
+  }, [isDropdownOpen, isCategoriaDropdownOpen]);
 
   const handleButtonClick = (buttonName: string) => {
     setSelectedButton(buttonName);
   };
 
   const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    const newState = !isDropdownOpen;
+    setIsDropdownOpen(newState);
+
+    if (!newState) {
+      setDescripcionVisible(null);
+    }
   };
 
   const handleOptionSelect = (algoritmo: Algoritmo) => {
     setSelectedOption(algoritmo.tituloCriterio);
     setIsDropdownOpen(false);
-    navigate('/responder-pregunta', { state: { usuario, algoritmoSeleccionado: algoritmo } });
+    setAlgoritmoSeleccionado(algoritmo);
+    
+    setDescripcionVisible(null);
+    
+    if (algoritmo.idCriterioAlgoritmo === 3) {
+      setMostrarCategoriaParaAlgoritmo3(true);
+      setIsCategoriaDropdownOpen(true);
+    } else {
+      navigate('/responder-pregunta', { state: { usuario, algoritmoSeleccionado: algoritmo } });
+    }
+  };
+
+  const toggleCategoriaDropdown = () => {
+    setIsCategoriaDropdownOpen(!isCategoriaDropdownOpen);
+  };
+
+  const handleCategoriaSelect = (categoria: Categoria) => {
+    setSelectedCategoria(categoria.nombreCategoria);
+    setIsCategoriaDropdownOpen(false);
+    
+    if (mostrarCategoriaParaAlgoritmo3 && algoritmoSeleccionado) {
+      navigate('/responder-pregunta', { 
+        state: { 
+          usuario, 
+          algoritmoSeleccionado: algoritmoSeleccionado,
+          categoriaSeleccionada: categoria
+        } 
+      });
+    }
   };
 
   const handleRatonEnter = (algoritmoId: number, event: React.MouseEvent) => {
@@ -157,6 +228,37 @@ const Home: React.FC = () => {
                         onClick={() => handleOptionSelect(algoritmo)}
                       >
                         {algoritmo.tituloCriterio}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={`contenedor-desplegable-categoria-home ${mostrarCategoriaParaAlgoritmo3 ? 'visible' : 'hidden'}`}>
+            <div className="desplegable-categoria-home" ref={categoriaDropdownRef}>
+              <div 
+                className="cabecera-desplegable-categoria-home"
+                onClick={toggleCategoriaDropdown}
+              >
+                <span>{cargandoCategorias ? 'Cargando...' : selectedCategoria}</span>
+                <span className={`flecha-desplegable-categoria-home ${isCategoriaDropdownOpen ? 'open' : ''}`}>▼</span>
+              </div>
+              {isCategoriaDropdownOpen && !cargandoCategorias && (
+                <div className="desplegable-list-categoria-home">
+                  {categorias.length === 0 ? (
+                    <div className="desplegable-item-categoria-home" style={{ color: '#888', cursor: 'default' }}>
+                      No hay categorías disponibles
+                    </div>
+                  ) : (
+                    categorias.map((categoria) => (
+                      <div
+                        key={categoria.idCategorias}
+                        className="desplegable-item-categoria-home"
+                        onClick={() => handleCategoriaSelect(categoria)}
+                      >
+                        {categoria.nombreCategoria}
                       </div>
                     ))
                   )}

@@ -17,12 +17,21 @@ interface LocationState {
     esPublico: boolean;
     idCriterioMasUsado: string;
   };
+  algoritmoSeleccionado?: {
+    idCriterioAlgoritmo: number;
+    textoCriterio: string;
+    tituloCriterio: string;
+  };
+  categoriaSeleccionada?: {
+    idCategorias: number;
+    nombreCategoria: string;
+  };
 }
 
 const ResponderPregunta: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const usuario = (location.state as LocationState)?.usuario;
+  const { usuario, algoritmoSeleccionado, categoriaSeleccionada } = (location.state as LocationState) || { usuario: null };
   const [numeroPregunta, setNumeroPregunta] = useState<number>(1);
   const [progresoActual, setProgresoActual] = useState<number>(0);
   const [progresoAnimado, setProgresoAnimado] = useState<number>(0);
@@ -40,8 +49,16 @@ const ResponderPregunta: React.FC = () => {
   useEffect(() => {
     if (!usuario) {
       navigate('/login');
+    } else {
+      // Log the selected algorithm and category for debugging
+      if (algoritmoSeleccionado) {
+        console.log('Algoritmo seleccionado:', algoritmoSeleccionado);
+      }
+      if (categoriaSeleccionada) {
+        console.log('Categoría seleccionada:', categoriaSeleccionada);
+      }
     }
-  }, [usuario, navigate]);
+  }, [usuario, navigate, algoritmoSeleccionado, categoriaSeleccionada]);
 
   useEffect(() => {
     const progresoObjetivo = (numeroPregunta / 10) * 100;
