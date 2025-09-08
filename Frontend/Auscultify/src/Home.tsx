@@ -131,14 +131,47 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleOptionSelect = (algoritmo: Algoritmo) => {
+  const handleOptionSelect = async (algoritmo: Algoritmo) => {
     setSelectedOption(algoritmo.tituloCriterio);
     setIsDropdownOpen(false);
     setAlgoritmoSeleccionado(algoritmo);
     
     setDescripcionVisible(null);
     
-    if (algoritmo.idCriterioAlgoritmo === 3) {
+    if (algoritmo.idCriterioAlgoritmo === 1) {
+
+      try {
+        const response = await fetch('http://localhost:3014/algoritmos/aleatorio-simple', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({})
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.resultado.preguntas) {
+            navigate('/responder-pregunta', { 
+              state: { 
+                usuario, 
+                algoritmoSeleccionado: algoritmo,
+                preguntas: data.resultado.preguntas
+              } 
+            });
+          } else {
+            console.error('Error en la respuesta del algoritmo:', data);
+            alert('Error al generar las preguntas. Inténtalo de nuevo.');
+          }
+        } else {
+          console.error('Error al llamar al algoritmo aleatorio simple:', response.statusText);
+          alert('Error de conexión con el servicio de algoritmos.');
+        }
+      } catch (error) {
+        console.error('Error de conexión:', error);
+        alert('Error de conexión. Verifica que el servicio esté disponible.');
+      }
+    } else if (algoritmo.idCriterioAlgoritmo === 3) {
       setMostrarCategoriaParaAlgoritmo3(true);
       setIsCategoriaDropdownOpen(true);
     } else {

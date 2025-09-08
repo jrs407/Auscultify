@@ -1,9 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './ResponderPregunta.css';
 import copaTrofeoIcon from './assets/copaTrofeoIcon.png';
 import altavozSinReproducir from './assets/AltavozSinReproducir.png';
 import altavozReproduciendo from './assets/AltavozReproduciendo.png';
+
+interface Pregunta {
+  idPregunta: number;
+  urlAudio: string;
+  respuestaCorrecta: string;
+  respuestasIncorrectas: string[];
+  Categorias_idCategorias: number;
+}
 
 interface LocationState {
   usuario: {
@@ -26,18 +34,17 @@ interface LocationState {
     idCategorias: number;
     nombreCategoria: string;
   };
+  preguntas?: Pregunta[];
 }
 
 const ResponderPregunta: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { usuario, algoritmoSeleccionado, categoriaSeleccionada } = (location.state as LocationState) || { usuario: null };
+  const { usuario, algoritmoSeleccionado, categoriaSeleccionada, preguntas } = (location.state as LocationState) || { usuario: null };
   const [numeroPregunta, setNumeroPregunta] = useState<number>(1);
   const [progresoActual, setProgresoActual] = useState<number>(0);
   const [progresoAnimado, setProgresoAnimado] = useState<number>(0);
   const [estaReproduciendose, setEstaReproduciendose] = useState<boolean>(false);
-  const [audioUrl] = useState<string>('Abdominal/AbdominalRespuesta11.m4a');
-  const [botonVerde] = useState<number>(1);
   const [botonActivado, setBotonActivado] = useState<boolean>(false);
   const [botonClickeado, setBotonClickeado] = useState<number | null>(null);
   const [preguntasAcertadas, setPreguntasAcertadas] = useState<number>(0);
@@ -45,12 +52,24 @@ const ResponderPregunta: React.FC = () => {
   const [respuestaFallada, setRespuestaFallada] = useState<boolean>(false);
   const progresoAnteriorRef = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const [preguntaActual, setPreguntaActual] = useState<Pregunta | null>(null);
+  const [opcionesRespuesta, setOpcionesRespuesta] = useState<string[]>([]);
+  const [respuestaCorrectaIndex, setRespuestaCorrectaIndex] = useState<number>(0);
 
   useEffect(() => {
     if (!usuario) {
       navigate('/login');
     } else {
-      // Log the selected algorithm and category for debugging
+
+      if (preguntas && preguntas.length > 0) {
+        console.log('Preguntas recibidas:', preguntas);
+      } else {
+        console.log('No hay preguntas disponibles');
+
+        navigate('/home', { state: { usuario } });
+      }
+      
       if (algoritmoSeleccionado) {
         console.log('Algoritmo seleccionado:', algoritmoSeleccionado);
       }
@@ -58,7 +77,42 @@ const ResponderPregunta: React.FC = () => {
         console.log('Categoría seleccionada:', categoriaSeleccionada);
       }
     }
-  }, [usuario, navigate, algoritmoSeleccionado, categoriaSeleccionada]);
+  }, [usuario, navigate, algoritmoSeleccionado, categoriaSeleccionada, preguntas]);
+
+
+  const cargarPregunta = useCallback((indicePregunta: number) => {
+    if (!preguntas || preguntas.length === 0) return;
+    
+    const pregunta = preguntas[indicePregunta - 1];
+    if (!pregunta) return;
+    
+    setPreguntaActual(pregunta);
+    
+    const todasLasOpciones = [
+      pregunta.respuestaCorrecta,
+      ...pregunta.respuestasIncorrectas
+    ];
+    
+    const opcionesMezcladas = [...todasLasOpciones].sort(() => Math.random() - 0.5);
+    setOpcionesRespuesta(opcionesMezcladas);
+    
+    const indiceRespuestaCorrecta = opcionesMezcladas.findIndex(
+      opcion => opcion === pregunta.respuestaCorrecta
+    );
+    setRespuestaCorrectaIndex(indiceRespuestaCorrecta);
+    
+    console.log(`Pregunta ${indicePregunta} cargada:`, {
+      pregunta: pregunta,
+      opciones: opcionesMezcladas,
+      respuestaCorrectaIndex: indiceRespuestaCorrecta
+    });
+  }, [preguntas]);
+
+  useEffect(() => {
+    if (preguntas && preguntas.length > 0) {
+      cargarPregunta(numeroPregunta);
+    }
+  }, [numeroPregunta, preguntas, cargarPregunta]);
 
   useEffect(() => {
     const progresoObjetivo = (numeroPregunta / 10) * 100;
@@ -75,7 +129,7 @@ const ResponderPregunta: React.FC = () => {
 
   useEffect(() => {
     setProgresoAnimado(progresoActual);
-  }, []);
+  }, [progresoActual]);
 
   const handleExit = () => {
     navigate('/home', { state: { usuario } });
@@ -96,6 +150,8 @@ const ResponderPregunta: React.FC = () => {
   };
 
   const reproducirAudio = () => {
+    if (!preguntaActual) return;
+    
     try {
 
       if (audioRef.current) {
@@ -103,9 +159,8 @@ const ResponderPregunta: React.FC = () => {
         audioRef.current.currentTime = 0;
       }
 
-
       audioRef.current = new Audio();
-      audioRef.current.src = `http://localhost:3012/audio/${audioUrl}`;
+      audioRef.current.src = `http://localhost:3012/audio/${preguntaActual.urlAudio}`;
       audioRef.current.volume = 0.7;
 
 
@@ -222,7 +277,7 @@ const ResponderPregunta: React.FC = () => {
     setBotonClickeado(buttonNumber);
     setBotonActivado(true);
     
-    if (buttonNumber === botonVerde) {
+    if (buttonNumber - 1 === respuestaCorrectaIndex) {
       setPreguntasAcertadas(prev => prev + 1);
       setRespuestaCorrecta(true);
       setRespuestaFallada(false);
@@ -282,25 +337,25 @@ const ResponderPregunta: React.FC = () => {
                     <button 
                         className={`boton-pregunta-sin-seleccionar ${
                           botonActivado && botonClickeado === 1 ? 
-                            (1 === botonVerde ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
+                            (1 - 1 === respuestaCorrectaIndex ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
                             : ''
                         }`}
                         onClick={() => handleSeleccionarRespuesta(1)}
                         disabled={botonActivado}
                     >
-                        Opción 1
+                        {opcionesRespuesta[0] || 'Opción 1'}
                     </button>
 
                     <button 
                         className={`boton-pregunta-sin-seleccionar ${
                           botonActivado && botonClickeado === 2 ? 
-                            (2 === botonVerde ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
+                            (2 - 1 === respuestaCorrectaIndex ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
                             : ''
                         }`}
                         onClick={() => handleSeleccionarRespuesta(2)}
                         disabled={botonActivado}
                     >
-                        Opción 2
+                        {opcionesRespuesta[1] || 'Opción 2'}
                     </button>
                 </div>
 
@@ -308,25 +363,25 @@ const ResponderPregunta: React.FC = () => {
                     <button 
                         className={`boton-pregunta-sin-seleccionar ${
                           botonActivado && botonClickeado === 3 ? 
-                            (3 === botonVerde ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
+                            (3 - 1 === respuestaCorrectaIndex ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
                             : ''
                         }`}
                         onClick={() => handleSeleccionarRespuesta(3)}
                         disabled={botonActivado}
                     >
-                        Opción 3
+                        {opcionesRespuesta[2] || 'Opción 3'}
                     </button>
                     
                     <button 
                         className={`boton-pregunta-sin-seleccionar ${
                           botonActivado && botonClickeado === 4 ? 
-                            (4 === botonVerde ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
+                            (4 - 1 === respuestaCorrectaIndex ? 'boton-pregunta-seleccionado' : 'boton-pregunta-incorrecto') 
                             : ''
                         }`}
                         onClick={() => handleSeleccionarRespuesta(4)}
                         disabled={botonActivado}
                     >
-                        Opción 4
+                        {opcionesRespuesta[3] || 'Opción 4'}
                     </button>
                 </div>
             </div>
@@ -355,7 +410,7 @@ const ResponderPregunta: React.FC = () => {
             </div>
 
             <div className={`contenedor-pregunta-fallada ${!respuestaFallada ? 'oculto' : ''}`}>
-              <p>¡Una pena!, La respuesta correcta era</p>
+              <p>¡Una pena!, La respuesta correcta era: {preguntaActual?.respuestaCorrecta}</p>
               <button 
                 className="boton-siguiente-fallado"
                 onClick={handleSiguientePregunta}
