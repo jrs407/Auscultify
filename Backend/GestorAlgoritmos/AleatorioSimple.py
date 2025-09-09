@@ -5,7 +5,7 @@ import os
 class AleatorioSimple:
     def __init__(self):
         self.nombre = "AleatorioSimple"
-        self.descripcion = "Algoritmo que genera 10 preguntas aleatorias de la base de datos"
+        self.descripcion = "Elige aleatoriamente las preguntas sin tomar en cuenta datos de otros usuarios o datos personales."
         self.db_config = {
             'host': os.getenv('DB_HOST', 'localhost'),
             'user': os.getenv('DB_USER', 'root'),
@@ -95,9 +95,7 @@ class AleatorioSimple:
             }
     
     def obtener_info(self):
-        """
-        Retorna información sobre el algoritmo
-        """
+
         return {
             'nombre': self.nombre,
             'descripcion': self.descripcion,

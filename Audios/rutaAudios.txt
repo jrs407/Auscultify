@@ -1,8 +1,5 @@
 Pulmonar/PulmonarRespuesta12.m4a
 Pulmonar/PulmonarRespuesta23.m4a
-Pulmonar/PulmonarRespuesta34.m4a
-Pulmonar/PulmonarRespuesta45.m4a
-Pulmonar/PulmonarRespuesta56.m4a
 Prueba/PruebaRespuesta17.m4a
 Prueba/PruebaRespuesta28.m4a
 Prueba/PruebaRespuesta39.m4a
@@ -23,3 +20,6 @@ Abdominal/AbdominalRespuesta223.m4a
 Abdominal/AbdominalRespuesta324.m4a
 Abdominal/AbdominalRespuesta425.m4a
 Abdominal/AbdominalRespuesta526.m4a
+Pulmonar/PulmonarRespuesta327.m4a
+Pulmonar/PulmonarRespuesta428.m4a
+Pulmonar/PulmonarRespuesta529.m4a

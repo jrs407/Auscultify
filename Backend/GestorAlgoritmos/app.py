@@ -3,6 +3,7 @@ from flask_cors import CORS
 import mysql.connector
 import os
 from AleatorioSimple import AleatorioSimple
+from CategoriaConcreta import CategoriaConcreta
 
 app = Flask(__name__)
 CORS(app, origins="*", supports_credentials=True)
@@ -32,6 +33,16 @@ def ejecutar_aleatorio_simple():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/algoritmos/categoria-concreta', methods=['POST'])
+def ejecutar_categoria_concreta():
+    try:
+        data = request.get_json()
+        algoritmo = CategoriaConcreta()
+        resultado = algoritmo.ejecutar(data)
+        return jsonify({'success': True, 'resultado': resultado})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/algoritmos/disponibles', methods=['GET'])
 def obtener_algoritmos_disponibles():
     algoritmos = [
@@ -39,6 +50,11 @@ def obtener_algoritmos_disponibles():
             'nombre': 'AleatorioSimple',
             'descripcion': 'Algoritmo aleatorio simple',
             'endpoint': '/algoritmos/aleatorio-simple'
+        },
+        {
+            'nombre': 'CategoriaConcreta',
+            'descripcion': 'Elige aleatoriamente una pregunta de una categoria en concreto',
+            'endpoint': '/algoritmos/categoria-concreta'
         }
     ]
     return jsonify({'algoritmos': algoritmos})
