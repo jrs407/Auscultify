@@ -4,6 +4,7 @@ import mysql.connector
 import os
 from AleatorioSimple import AleatorioSimple
 from CategoriaConcreta import CategoriaConcreta
+from PreguntasNoHechas import PreguntasNoHechas
 
 app = Flask(__name__)
 CORS(app, origins="*", supports_credentials=True)
@@ -43,6 +44,16 @@ def ejecutar_categoria_concreta():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/algoritmos/preguntas-no-hechas', methods=['POST'])
+def ejecutar_preguntas_no_hechas():
+    try:
+        data = request.get_json()
+        algoritmo = PreguntasNoHechas()
+        resultado = algoritmo.ejecutar(data)
+        return jsonify({'success': True, 'resultado': resultado})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/algoritmos/disponibles', methods=['GET'])
 def obtener_algoritmos_disponibles():
     algoritmos = [
@@ -55,6 +66,11 @@ def obtener_algoritmos_disponibles():
             'nombre': 'CategoriaConcreta',
             'descripcion': 'Elige aleatoriamente una pregunta de una categoria en concreto',
             'endpoint': '/algoritmos/categoria-concreta'
+        },
+        {
+            'nombre': 'PreguntasNoHechas',
+            'descripcion': 'Elige aleatoriamente preguntas que no has hecho',
+            'endpoint': '/algoritmos/preguntas-no-hechas'
         }
     ]
     return jsonify({'algoritmos': algoritmos})

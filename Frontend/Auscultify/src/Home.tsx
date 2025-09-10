@@ -171,6 +171,40 @@ const Home: React.FC = () => {
         console.error('Error de conexión:', error);
         alert('Error de conexión. Verifica que el servicio esté disponible.');
       }
+    } else if (algoritmo.idCriterioAlgoritmo === 2) {
+      try {
+        const response = await fetch('http://localhost:3014/algoritmos/preguntas-no-hechas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            usuario_id: usuario.id
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.resultado.preguntas) {
+            navigate('/responder-pregunta', { 
+              state: { 
+                usuario, 
+                algoritmoSeleccionado: algoritmo,
+                preguntas: data.resultado.preguntas
+              } 
+            });
+          } else {
+            console.error('Error en la respuesta del algoritmo:', data);
+            alert('Error al generar las preguntas. Inténtalo de nuevo.');
+          }
+        } else {
+          console.error('Error al llamar al algoritmo preguntas no hechas:', response.statusText);
+          alert('Error de conexión con el servicio de algoritmos.');
+        }
+      } catch (error) {
+        console.error('Error de conexión:', error);
+        alert('Error de conexión. Verifica que el servicio esté disponible.');
+      }
     } else if (algoritmo.idCriterioAlgoritmo === 3) {
       setMostrarCategoriaParaAlgoritmo3(true);
       setIsCategoriaDropdownOpen(true);
