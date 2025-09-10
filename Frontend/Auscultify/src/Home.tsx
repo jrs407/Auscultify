@@ -208,6 +208,71 @@ const Home: React.FC = () => {
     } else if (algoritmo.idCriterioAlgoritmo === 3) {
       setMostrarCategoriaParaAlgoritmo3(true);
       setIsCategoriaDropdownOpen(true);
+    } else if (algoritmo.idCriterioAlgoritmo === 4) {
+      try {
+        const response = await fetch('http://localhost:3014/algoritmos/categoria-peor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            usuario_id: usuario.id
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.resultado && data.resultado.preguntas && data.resultado.preguntas.length > 0) {
+            navigate('/responder-pregunta', { 
+              state: { 
+                usuario, 
+                algoritmoSeleccionado: algoritmo,
+                preguntas: data.resultado.preguntas
+              } 
+            });
+          } else {
+            console.warn('CategoriaPeor no devolvió preguntas, usando AleatorioSimple como fallback:', data);
+            try {
+              const fallbackResponse = await fetch('http://localhost:3014/algoritmos/aleatorio-simple', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+              });
+              
+              if (fallbackResponse.ok) {
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackData.success && fallbackData.resultado.preguntas) {
+                  navigate('/responder-pregunta', { 
+                    state: { 
+                      usuario, 
+                      algoritmoSeleccionado: algoritmo,
+                      preguntas: fallbackData.resultado.preguntas,
+                      esFallback: true
+                    } 
+                  });
+                } else {
+                  console.error('Error en la respuesta del algoritmo de fallback:', fallbackData);
+                  alert('No se pudieron generar preguntas. Inténtalo de nuevo.');
+                }
+              } else {
+                console.error('Error al llamar al algoritmo de fallback:', fallbackResponse.statusText);
+                alert('Error de conexión con el servicio de algoritmos.');
+              }
+            } catch (fallbackError) {
+              console.error('Error de conexión con algoritmo de fallback:', fallbackError);
+              alert('Error de conexión. Verifica que el servicio esté disponible.');
+            }
+          }
+        } else {
+          console.error('Error al llamar al algoritmo categoria peor:', response.statusText);
+          alert('Error de conexión con el servicio de algoritmos.');
+        }
+      } catch (error) {
+        console.error('Error de conexión:', error);
+        alert('Error de conexión. Verifica que el servicio esté disponible.');
+      }
     } else {
       navigate('/responder-pregunta', { state: { usuario, algoritmoSeleccionado: algoritmo } });
     }

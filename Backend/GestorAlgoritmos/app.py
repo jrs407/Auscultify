@@ -5,6 +5,7 @@ import os
 from AleatorioSimple import AleatorioSimple
 from CategoriaConcreta import CategoriaConcreta
 from PreguntasNoHechas import PreguntasNoHechas
+from CategoriaPeor import CategoriaPeor
 
 app = Flask(__name__)
 CORS(app, origins="*", supports_credentials=True)
@@ -54,6 +55,16 @@ def ejecutar_preguntas_no_hechas():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/algoritmos/categoria-peor', methods=['POST'])
+def ejecutar_categoria_peor():
+    try:
+        data = request.get_json()
+        algoritmo = CategoriaPeor()
+        resultado = algoritmo.ejecutar(data)
+        return jsonify({'success': True, 'resultado': resultado})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/algoritmos/disponibles', methods=['GET'])
 def obtener_algoritmos_disponibles():
     algoritmos = [
@@ -71,6 +82,11 @@ def obtener_algoritmos_disponibles():
             'nombre': 'PreguntasNoHechas',
             'descripcion': 'Elige aleatoriamente preguntas que no has hecho',
             'endpoint': '/algoritmos/preguntas-no-hechas'
+        },
+        {
+            'nombre': 'CategoriaPeor',
+            'descripcion': 'Te pone automaticamente preguntas de la categoria que peor se te da',
+            'endpoint': '/algoritmos/categoria-peor'
         }
     ]
     return jsonify({'algoritmos': algoritmos})
