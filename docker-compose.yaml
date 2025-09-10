@@ -262,6 +262,23 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=mydb
       - DB_PORT=3306
+
+  gestor-datos-usuario-preguntas:
+    build: 
+      context: ./Backend/GestorDatosUsuarioPreguntas
+      dockerfile: Dockerfile
+    ports:
+      - "3015:3015"
+    depends_on:
+      - database
+    environment:
+      - PORT=3015
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
       
 volumes:
   mysql_data:

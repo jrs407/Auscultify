@@ -42,7 +42,6 @@ const modificarPerfilHandler: express.RequestHandler = async (req, res) => {
     };
 
     try {
-        // Validar formato de email si se proporciona
         if (nuevoCorreo) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(nuevoCorreo)) {
@@ -50,7 +49,6 @@ const modificarPerfilHandler: express.RequestHandler = async (req, res) => {
                 return;
             }
 
-            // Verificar si el nuevo correo ya existe en otro usuario
             const [existingUsers] = await pool.execute(
                 'SELECT idUsuario FROM Usuarios WHERE correoElectronico = ? AND idUsuario != ?',
                 [nuevoCorreo, userId]
@@ -94,7 +92,6 @@ const modificarPerfilHandler: express.RequestHandler = async (req, res) => {
             updateValues
         );
 
-        // Obtener los datos actualizados del usuario
         const [updatedUser]: any = await pool.execute(
             'SELECT * FROM Usuarios WHERE idUsuario = ?',
             [userId]

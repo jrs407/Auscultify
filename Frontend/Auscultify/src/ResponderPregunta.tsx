@@ -48,6 +48,9 @@ const ResponderPregunta: React.FC = () => {
   const [botonActivado, setBotonActivado] = useState<boolean>(false);
   const [botonClickeado, setBotonClickeado] = useState<number | null>(null);
   const [preguntasAcertadas, setPreguntasAcertadas] = useState<number>(0);
+  const [preguntasFalladas, setPreguntasFalladas] = useState<number>(0);
+  const [preguntasAcertadasIds, setPreguntasAcertadasIds] = useState<number[]>([]);
+  const [preguntasRespondidas, setPreguntasRespondidas] = useState<{ id: number; acertada: boolean }[]>([]);
   const [respuestaCorrecta, setRespuestaCorrecta] = useState<boolean>(false);
   const [respuestaFallada, setRespuestaFallada] = useState<boolean>(false);
   const progresoAnteriorRef = useRef<number>(0);
@@ -239,7 +242,10 @@ const ResponderPregunta: React.FC = () => {
           state: { 
             usuario,
             preguntasAcertadas,
-            preguntasTotales: 10
+            preguntasTotales: 10,
+            preguntasFalladas,
+            preguntas: preguntasRespondidas.map(p => ({ id: p.id })),
+            preguntasAcertadasIds
           } 
         });
       }, 100);
@@ -264,7 +270,10 @@ const ResponderPregunta: React.FC = () => {
           state: { 
             usuario,
             preguntasAcertadas,
-            preguntasTotales: 10
+            preguntasTotales: 10,
+            preguntasFalladas,
+            preguntas: preguntasRespondidas.map(p => ({ id: p.id })),
+            preguntasAcertadasIds
           } 
         });
       }, 100);
@@ -272,17 +281,21 @@ const ResponderPregunta: React.FC = () => {
   };
 
   const handleSeleccionarRespuesta = (buttonNumber: number) => {
-    if (botonActivado) return;
+    if (botonActivado || !preguntaActual) return;
 
     setBotonClickeado(buttonNumber);
     setBotonActivado(true);
     
     if (buttonNumber - 1 === respuestaCorrectaIndex) {
       setPreguntasAcertadas(prev => prev + 1);
+      setPreguntasAcertadasIds(prev => [...prev, preguntaActual.idPregunta]);
+      setPreguntasRespondidas(prev => [...prev, { id: preguntaActual.idPregunta, acertada: true }]);
       setRespuestaCorrecta(true);
       setRespuestaFallada(false);
       console.log('Respuesta correcta! Total aciertos:', preguntasAcertadas + 1);
     } else {
+      setPreguntasFalladas(prev => prev + 1);
+      setPreguntasRespondidas(prev => [...prev, { id: preguntaActual.idPregunta, acertada: false }]);
       setRespuestaCorrecta(false);
       setRespuestaFallada(true);
       console.log('Respuesta incorrecta!');
