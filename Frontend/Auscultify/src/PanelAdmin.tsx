@@ -215,16 +215,13 @@ const PanelAdmin: React.FC = () => {
   };
 
   const handleEliminarPreguntaSelect = (pregunta: string) => {
-    // Stop current audio immediately before switching
     stopAudio();
     
     setSelectedEliminarPregunta(pregunta);
     setIsEliminarPreguntaDropdownOpen(false);
     
-    // Find the selected question and play its audio with minimal delay
     const preguntaSeleccionada = preguntas.find(p => p.respuestaCorrecta === pregunta);
     if (preguntaSeleccionada && preguntaSeleccionada.audioUrl) {
-      // Use setTimeout with minimal delay to ensure state update completes
       setTimeout(() => {
         playQuestionAudio(preguntaSeleccionada.audioUrl);
       }, 50);

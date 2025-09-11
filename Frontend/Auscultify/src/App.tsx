@@ -7,6 +7,7 @@ import Siguiendo from './Siguiendo';
 import PanelAdmin from './PanelAdmin';
 import ResponderPregunta from './ResponderPregunta';
 import Resultado from './Resultado';
+import EstadisticasIndividual from './EstadisticasIndividual';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/admin" element={<PanelAdmin />} />
         <Route path="/responder-pregunta" element={<ResponderPregunta />} />
         <Route path="/resultado" element={<Resultado />} />
+        <Route path="/estadisticas-individual" element={<EstadisticasIndividual />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
