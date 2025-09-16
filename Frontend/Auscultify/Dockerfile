@@ -6,6 +6,8 @@ COPY package*.json ./
 
 RUN npm ci
 
+RUN npm install chart.js react-chartjs-2
+
 COPY . .
 
 EXPOSE 5173

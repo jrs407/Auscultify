@@ -69,6 +69,8 @@ const actualizarDatosUsuarioHandler: express.RequestHandler = async (req, res) =
             return;
         }
 
+        console.log(preguntasResultados)
+
         const usuario = usuarioActual[0];
         
         const preguntasAcertadas = preguntasResultados.filter(p => p.acertada).length;
@@ -178,13 +180,86 @@ const obtenerEstadisticasUsuarioHandler: express.RequestHandler = async (req, re
             ? Math.round((usuario.totalPreguntasAcertadas * 100) / usuario.totalPreguntasContestadas * 100) / 100
             : 0;
 
+        const [estadisticasCategorias]: any = await pool.execute(
+            `SELECT 
+                c.idCategorias,
+                c.nombreCategoria,
+                COUNT(*) as totalPreguntas,
+                SUM(uhp.respuestaCorrecta) as preguntasAcertadas
+             FROM Usuarios_has_Preguntas uhp
+             JOIN Preguntas p ON uhp.Preguntas_idPregunta = p.idPregunta
+             JOIN Categorias c ON p.Categorias_idCategorias = c.idCategorias
+             WHERE uhp.Usuarios_idUsuario = ?
+             GROUP BY c.idCategorias, c.nombreCategoria`,
+            [usuarioId]
+        );
+
+        let categoriaMasUsada = null;
+        let porcentajeMejorCategoria = 0;
+        let porcentajePeorCategoria = 100;
+
+        if (estadisticasCategorias.length > 0) {
+
+            const categoriaConMasPreguntas = estadisticasCategorias.reduce((prev: any, current: any) => 
+                (prev.totalPreguntas > current.totalPreguntas) ? prev : current
+            );
+            categoriaMasUsada = categoriaConMasPreguntas.nombreCategoria;
+
+            const porcentajesPorCategoria = estadisticasCategorias.map((cat: any) => ({
+                categoria: cat.nombreCategoria,
+                porcentaje: cat.totalPreguntas > 0 ? Math.round((cat.preguntasAcertadas * 100) / cat.totalPreguntas * 100) / 100 : 0
+            }));
+
+            if (porcentajesPorCategoria.length > 0) {
+                porcentajeMejorCategoria = Math.max(...porcentajesPorCategoria.map((p: any) => p.porcentaje));
+                porcentajePeorCategoria = Math.min(...porcentajesPorCategoria.map((p: any) => p.porcentaje));
+            }
+        }
+
+        const fechaActual = new Date();
+        const preguntasPor7Dias = [];
+        const preguntasAcertadasPor7Dias = [];
+        const preguntasfalladasPor7Dias = [];
+
+        for (let i = 6; i >= 0; i--) {
+            const fecha = new Date(fechaActual);
+            fecha.setDate(fecha.getDate() - i);
+            const fechaString = fecha.toISOString().split('T')[0];
+
+            const [preguntasDelDia]: any = await pool.execute(
+                'SELECT * FROM Usuarios_has_Preguntas WHERE Usuarios_idUsuario = ? AND fechaDeContestacion = ?',
+                [usuarioId, fechaString]
+            );
+
+            const [preguntasAcertadasDelDia]: any = await pool.execute(
+                'SELECT * FROM Usuarios_has_Preguntas WHERE Usuarios_idUsuario = ? AND fechaDeContestacion = ? AND respuestaCorrecta = 1',
+                [usuarioId, fechaString]
+            );
+
+            const [preguntasfalladasDelDia]: any = await pool.execute(
+                'SELECT * FROM Usuarios_has_Preguntas WHERE Usuarios_idUsuario = ? AND fechaDeContestacion = ? AND respuestaCorrecta = 0',
+                [usuarioId, fechaString]
+            );
+
+            preguntasPor7Dias.push(preguntasDelDia.length);
+            preguntasAcertadasPor7Dias.push(preguntasAcertadasDelDia.length);
+            preguntasfalladasPor7Dias.push(preguntasfalladasDelDia.length);
+        }
+
         res.json({
-            totalPreguntasAcertadas: usuario.totalPreguntasAcertadas || 0,
-            totalPreguntasFalladas: usuario.totalPreguntasFalladas || 0,
-            totalPreguntasContestadas: usuario.totalPreguntasContestadas || 0,
-            porcentajeAcierto: porcentajeGeneral,
-            racha: usuario.racha || 0,
-            ultimoDiaPregunta: usuario.ultimoDiaPregunta
+            categoriaMasUsada,
+            porcentajeGeneral,
+            porcentajeMejorCategoria,
+            porcentajePeorCategoria,
+            preguntasPor7Dias,
+            preguntasAcertadasPor7Dias,
+            preguntasfalladasPor7Dias,
+            datosUsuario: {
+                totalPreguntasAcertadas: usuario.totalPreguntasAcertadas || 0,
+                totalPreguntasFalladas: usuario.totalPreguntasFalladas || 0,
+                totalPreguntasContestadas: usuario.totalPreguntasContestadas || 0,
+                racha: usuario.racha || 0
+            }
         });
 
     } catch (error) {

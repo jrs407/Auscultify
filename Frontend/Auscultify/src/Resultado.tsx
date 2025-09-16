@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Resultado.css';
 import copaTrofeoIcon from './assets/copaTrofeoIcon.png';
@@ -38,44 +38,48 @@ const Resultado: React.FC = () => {
     preguntasAcertadasIds: [] 
   };
 
-  const actualizarDatosUsuario = useCallback(async () => {
-    if (!usuario || !preguntas || preguntas.length === 0) {
-      console.log('No hay datos de usuario o preguntas para actualizar');
-      return;
-    }
-
-    try {
-      const preguntasResultados = preguntas.map(pregunta => ({
-        id: pregunta.id,
-        acertada: preguntasAcertadasIds.includes(pregunta.id)
-      }));
-
-      const response = await fetch('http://localhost:3015/actualizar-datos-usuario', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          usuarioId: parseInt(usuario.id),
-          preguntasResultados: preguntasResultados
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Datos del usuario actualizados correctamente:', data);
-      } else {
-        console.error('Error al actualizar datos del usuario:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error al actualizar datos del usuario:', error);
-    }
-  }, [usuario, preguntas, preguntasAcertadasIds]);
+  const ejecutado = useRef<boolean>(false);
 
   useEffect(() => {
+    const actualizarDatosUsuario = async () => {
+      if (!usuario || !preguntas || preguntas.length === 0 || ejecutado.current) {
+        console.log('No hay datos de usuario o preguntas para actualizar, o ya se actualizaron');
+        return;
+      }
+
+      ejecutado.current = true;
+
+      try {
+        const preguntasResultados = preguntas.map(pregunta => ({
+          id: pregunta.id,
+          acertada: preguntasAcertadasIds.includes(pregunta.id)
+        }));
+
+        const response = await fetch('http://localhost:3015/actualizar-datos-usuario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            usuarioId: parseInt(usuario.id),
+            preguntasResultados: preguntasResultados
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Datos del usuario actualizados correctamente:', data);
+        } else {
+          console.error('Error al actualizar datos del usuario:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error al actualizar datos del usuario:', error);
+      }
+    };
+
     actualizarDatosUsuario();
-  }, [actualizarDatosUsuario]);
+  }, [usuario, preguntas, preguntasAcertadasIds]);
 
   const mensajeResultado = () => {
     if (preguntasAcertadas === preguntasTotales) {
