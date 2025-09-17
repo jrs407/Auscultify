@@ -4,18 +4,26 @@ import './IniciarSesion.css';
 
 const Registrarse: React.FC = () => {
     const navigate = useNavigate();
+
+    // Campos de texto del formulario.
     const [usuario, setUsuario] = React.useState('');
     const [contrasena1, setContrasena1] = React.useState('');
     const [contrasena2, setContrasena2] = React.useState('');
+
+    // Mensaje de error.
     const [error, setError] = React.useState('');
 
+    // Llamada al endpoint del backend para registrar un nuevo usuario.
     const handleRegister = async () => {
         try {
+
+            // Comprobación básica de que los campos no estén vacíos.
             if (!usuario || !contrasena1 || !contrasena2) {
                 setError('Todos los campos son obligatorios');
                 return;
             }
 
+            // Llamada al endpoint del backend.
             const response = await fetch('http://localhost:3002/registrarse', {
                 method: 'POST',
                 headers: {
@@ -35,6 +43,7 @@ const Registrarse: React.FC = () => {
                 return;
             }
 
+            // Navega a /home pasando los datos del usuario en el state
             navigate('/home', { state: { usuario: data.usuario } });
 
         } catch {

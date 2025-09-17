@@ -19,9 +19,9 @@ services:
       - ./BaseDatos/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
 
-  auth:
-    build:
-      context: ./Backend/IniciarSesion
+  sincronizar-datos:
+    build: 
+      context: ./Backend/SincronizarDatos
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
@@ -35,10 +35,10 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=mydb
       - DB_PORT=3306
-
-  register:
+  
+  gestion-autentificacion:
     build:
-      context: ./Backend/Registrarse
+      context: ./Backend/GestionAutentificacion
       dockerfile: Dockerfile
     ports:
       - "3002:3002"
@@ -273,23 +273,6 @@ services:
       - database
     environment:
       - PORT=3015
-      - JWT_SECRET=tu_secreto_jwt_super_seguro
-      - DB_HOST=database
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=mydb
-      - DB_PORT=3306
-
-  sincronizar-datos:
-    build: 
-      context: ./Backend/SincronizarDatos
-      dockerfile: Dockerfile
-    ports:
-      - "3016:3016"
-    depends_on:
-      - database
-    environment:
-      - PORT=3016
       - JWT_SECRET=tu_secreto_jwt_super_seguro
       - DB_HOST=database
       - DB_USER=root

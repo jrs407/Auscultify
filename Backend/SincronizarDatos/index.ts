@@ -90,7 +90,7 @@ const sincronizarDatosHandler: express.RequestHandler = async (req, res) => {
 
 app.post('/sincronizar-datos', sincronizarDatosHandler);
 
-const PORT = process.env.PORT || 3008;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`SincronizarDatos service running on port ${PORT}`);
 });

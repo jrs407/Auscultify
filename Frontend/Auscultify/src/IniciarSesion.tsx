@@ -18,7 +18,7 @@ const IniciarSesion: React.FC = () => {
       ejecutado.current = true;
 
       try {
-        await fetch('http://localhost:3016/sincronizar-datos', {
+        await fetch('http://localhost:3001/sincronizar-datos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -37,7 +37,7 @@ const IniciarSesion: React.FC = () => {
   const handleLogin = async () => {
     setError('');
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch('http://localhost:3002/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
