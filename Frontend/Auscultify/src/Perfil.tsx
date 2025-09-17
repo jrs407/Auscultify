@@ -5,6 +5,8 @@ import Sidebar from './components/Sidebar';
 import editIcon from './assets/Edit.png';
 
 interface LocationState {
+
+  // Definición de la estructura del estado pasado por el enrutador, en este caso son los datos del usuario.
   usuario: {
     id: string;
     email: string;
@@ -21,22 +23,38 @@ interface LocationState {
 const Perfil: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Estado para almacenar los datos del usuario.
   const [usuario, setUsuario] = useState((location.state as LocationState)?.usuario);
+
+ // Estado para gestionar qué botón del sidebar está seleccionado.
   const [selectedButton, setSelectedButton] = useState('perfil');
-  const [showInput, setShowInput] = useState(false);
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
-  const [fadeOut, setFadeOut] = useState(false);
-  const [fadeOutPassword, setFadeOutPassword] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isPublic, setIsPublic] = useState(usuario?.esPublico || false);
-  const [showDeleteOverlay, setShowDeleteOverlay] = useState(false);
-  const [overlayAnimating, setOverlayAnimating] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [deleteError, setDeleteError] = useState('');
+
+  // Estado para mostrar/ocultar el input de cambio de correo y contraseña.
+  const [mostrarCorreo, setMostrarCorreo] = useState(false);
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
+
+  // Estados para manejar la animación de fadeOut y si la animacion esta en reproduccion.
+  const [fadeOutCorreo, setFadeOutCorreo] = useState(false);
+  const [fadeOutContrasena, setFadeOutContrasena] = useState(false);
+  const [animacionEnReproduccion, setAnimacionEnReproduccion] = useState(false);
+
+  // Estado para gestionar si el perfil es público o privado.
+  const [esPublico, setEsPublico] = useState(usuario?.esPublico || false);
+
+  // Datos para actualizar el correo y la contraseña.
+  const [nuevoCorreo, setNuevoCorreo] = useState('');
+  const [nuevaContrasena1, setNuevaContrasena1] = useState('');
+  const [nuevaContrasena2, setNuevaContrasena2] = useState('');
+
+  // Estados para manejar el overlay de confirmación de eliminación de cuenta.
+  const [mostrarOverlay, setMostrarOverlay] = useState(false);
+  const [overlayAnimacionEnReproduccion, setOverlayAnimacionEnReproduccion] = useState(false);
+
+  // Estado para manejar mensajes de error.
+  const [mensajeError, setMensajeError] = useState('');
   
+  // Refs para manejar timeouts de las animaciones.
   const timeoutRef = useRef<number | null>(null);
   const fadeInTimeoutRef = useRef<number | null>(null);
 
@@ -50,7 +68,8 @@ const Perfil: React.FC = () => {
     setSelectedButton(buttonName);
   };
 
-  const handleUpdateProfile = async (updates: { nuevoCorreo?: string; nuevaContrasena?: string; esPublico?: boolean }) => {
+  // Llamada al endpoint del backend para actualizar el perfil.
+  const handleActualizarPerfil = async (updates: { nuevoCorreo?: string; nuevaContrasena?: string; esPublico?: boolean }) => {
     try {
       const response = await fetch('http://localhost:3003/modificar-perfil', {
         method: 'PUT',
@@ -69,150 +88,201 @@ const Perfil: React.FC = () => {
         if (data.usuario) {
           setUsuario(data.usuario);
         }
-        setErrorMessage('');
+        setMensajeError('');
         return true;
       } else {
-        setErrorMessage(data.mensaje || 'Error al actualizar el perfil');
+        setMensajeError(data.mensaje || 'Error al actualizar el perfil');
         return false;
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('Error de conexión');
+      setMensajeError('Error de conexión');
       return false;
     }
   };
 
-  const handleEmailSubmit = async () => {
-    if (!newEmail.trim()) {
-      setErrorMessage('Por favor ingresa un nuevo correo');
-      return;
+  // Maneja la lógica al hacer clic en "Aceptar" para modificar correo y/o contraseña.
+  const handleModificar = async () => {
+
+    let modificacionCorrecta = false;
+
+    // Si se ha introducido un nuevo correo, validarlo y actualizarlo.
+    if(nuevoCorreo !== ""){
+
+      // Validación básica del formato del correo.
+      if (!nuevoCorreo.trim()) {
+        setMensajeError('Por favor ingresa un nuevo correo');
+        return;
+      }
+
+      // Llamada al backend para actualizar el correo.
+      modificacionCorrecta = await handleActualizarPerfil({ nuevoCorreo: nuevoCorreo });
+      if (modificacionCorrecta) {
+        // Actualizar el estado local del usuario con el nuevo correo
+        setUsuario(prevUsuario => ({
+          ...prevUsuario!,
+          email: nuevoCorreo
+        }));
+        setNuevoCorreo('');
+        setMostrarCorreo(false);
+        setFadeOutCorreo(false);
+     }
     }
 
-    const success = await handleUpdateProfile({ nuevoCorreo: newEmail });
-    if (success) {
-      setNewEmail('');
-      setShowInput(false);
-      setFadeOut(false);
-    }
+    // Si se ha introducido una nueva contraseña, validarla y actualizarla.
+    if (nuevaContrasena1 !== "" || nuevaContrasena2 !== ""){
+
+      // Validación básica de las contraseñas.
+      if (!nuevaContrasena1.trim()) {
+        setMensajeError('Por favor ingresa una nueva contraseña');
+        return;
+      }
+
+      // Comprobación de que las contraseñas coincidan.
+      if (nuevaContrasena1 !== nuevaContrasena2) {
+        setMensajeError('Las contraseñas no coinciden');
+        return;
+      }
+
+      // Llamada al backend para actualizar la contraseña.
+      modificacionCorrecta = await handleActualizarPerfil({ nuevaContrasena: nuevaContrasena1 });
+      if (modificacionCorrecta) {
+        setNuevaContrasena1('');
+        setNuevaContrasena2('');
+        setMostrarContrasena(false);
+        setFadeOutContrasena(false);
+      }
+    } 
+
+    return;
   };
 
-  const handlePasswordSubmit = async () => {
-    if (!newPassword.trim()) {
-      setErrorMessage('Por favor ingresa una nueva contraseña');
-      return;
+  // Maneja la lógica al hacer clic en "Cancelar" para modificar correo y/o contraseña.
+  const handleCancelar = () => {
+
+    // Limpia las variables.
+    setNuevoCorreo('');
+    setMensajeError('');
+    setNuevaContrasena1('');
+    setNuevaContrasena2('');
+
+    // Revisa que se esta modificando el correo, para ocultarlo y reproducir la animacion.
+    if(mostrarCorreo){
+      setFadeOutCorreo(true);
+
+      timeoutRef.current = setTimeout(() => {
+        setMostrarCorreo(false);
+        setFadeOutCorreo(false);
+        setAnimacionEnReproduccion(false);
+      }, 300);
     }
-
-    if (newPassword !== confirmPassword) {
-      setErrorMessage('Las contraseñas no coinciden');
-      return;
-    }
-
-    const success = await handleUpdateProfile({ nuevaContrasena: newPassword });
-    if (success) {
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordInput(false);
-      setFadeOutPassword(false);
-    }
-  };
-
-  const handleCancelEmail = () => {
-    setNewEmail('');
-    setErrorMessage('');
-    setFadeOut(true);
-    timeoutRef.current = setTimeout(() => {
-      setShowInput(false);
-      setFadeOut(false);
-      setIsAnimating(false);
-    }, 300);
-  };
-
-  const handleCancelPassword = () => {
-    setNewPassword('');
-    setConfirmPassword('');
-    setErrorMessage('');
-    setFadeOutPassword(true);
-    timeoutRef.current = setTimeout(() => {
-      setShowPasswordInput(false);
-      setFadeOutPassword(false);
-      setIsAnimating(false);
-    }, 300);
-  };
-
-  const handleEditClick = () => {
-    if (isAnimating) return;
     
+    // Revisa que se esta modificando la contraseña, para ocultarlo y reproducir la animacion.
+    if(mostrarContrasena){
+      setFadeOutContrasena(true);
+
+      timeoutRef.current = setTimeout(() => {
+        setMostrarContrasena(false);
+        setFadeOutContrasena(false);
+        setAnimacionEnReproduccion(false);
+      }, 300);
+    }
+  };
+
+
+  // Maneja la animación y el estado al hacer clic en el icono de editar correo.
+  const handleEditarCorreo = () => {
+    // Controla que no se pueda hacer clic mientras se está animando.
+    if (animacionEnReproduccion) return;
+    
+    // Limpia cualquier timeout pendiente.
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (fadeInTimeoutRef.current) clearTimeout(fadeInTimeoutRef.current);
     
-    setIsAnimating(true);
+    // Indica que una animación está en reproducción.
+    setAnimacionEnReproduccion(true);
     
-    if (showPasswordInput) {
-      setFadeOutPassword(true);
+    // Si el campo de contraseña está abierto, cerrarlo con animación.
+    if (mostrarContrasena) {
+      setFadeOutContrasena(true);
       timeoutRef.current = setTimeout(() => {
-        setShowPasswordInput(false);
-        setFadeOutPassword(false);
-        setIsAnimating(false);
+        setMostrarContrasena(false);
+        setFadeOutContrasena(false);
+        setAnimacionEnReproduccion(false);
       }, 300);
     }
     
-    if (showInput) {
-      setFadeOut(true);
+    // Si el campo de correo está abierto, cerrarlo con animación.
+    if (mostrarCorreo) {
+      setFadeOutCorreo(true);
       timeoutRef.current = setTimeout(() => {
-        setShowInput(false);
-        setFadeOut(false);
-        setIsAnimating(false);
+        setMostrarCorreo(false);
+        setFadeOutCorreo(false);
+        setAnimacionEnReproduccion(false);
       }, 300);
     } else {
-      setShowInput(true);
-      setIsAnimating(false);
+      setMostrarCorreo(true);
+      setAnimacionEnReproduccion(false);
     }
   };
 
-  const handlePasswordEditClick = () => {
-    if (isAnimating) return;
+  // Maneja la animación y el estado al hacer clic en el icono de editar contraseña.
+  const handleEditarContrasena = () => {
+    // Controla que no se pueda hacer clic mientras se está animando.
+    if (animacionEnReproduccion) return;
     
+    // Limpia cualquier timeout pendiente.
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (fadeInTimeoutRef.current) clearTimeout(fadeInTimeoutRef.current);
     
-    setIsAnimating(true);
+    // Indica que una animación está en reproducción.
+    setAnimacionEnReproduccion(true);
     
-    if (showInput) {
-      setFadeOut(true);
+    // Si el campo de correo está abierto, cerrarlo con animación.
+    if (mostrarCorreo) {
+      setFadeOutCorreo(true);
       timeoutRef.current = setTimeout(() => {
-        setShowInput(false);
-        setFadeOut(false);
-        setIsAnimating(false);
+        setMostrarCorreo(false);
+        setFadeOutCorreo(false);
+        setAnimacionEnReproduccion(false);
       }, 300);
     }
     
-    if (showPasswordInput) {
-      setFadeOutPassword(true);
+    // Si el campo de contraseña está abierto, cerrarlo con animación.
+    if (mostrarContrasena) {
+      setFadeOutContrasena(true);
       timeoutRef.current = setTimeout(() => {
-        setShowPasswordInput(false);
-        setFadeOutPassword(false);
-        setIsAnimating(false);
+        setMostrarContrasena(false);
+        setFadeOutContrasena(false);
+        setAnimacionEnReproduccion(false);
       }, 300);
     } else {
-      setShowPasswordInput(true);
-      setIsAnimating(false);
+      setMostrarContrasena(true);
+      setAnimacionEnReproduccion(false);
     }
   };
 
-  const handleTogglePublic = async () => {
-    const newPublicState = !isPublic;
-    const success = await handleUpdateProfile({ esPublico: newPublicState });
+  // Maneja el clic en el toggle para cambiar el estado público/privado del perfil.
+  const handleCambiarPublico = async () => {
+
+    // Se crea la variable con el estado contrario al actual.
+    const estadoContrarioPublico = !esPublico;
+
+    // Se actualiza el perfil con el nuevo estado.
+    const success = await handleActualizarPerfil({ esPublico: estadoContrarioPublico });
     if (success) {
-      setIsPublic(newPublicState);
+      setEsPublico(estadoContrarioPublico);
     }
   };
 
-  const handleDeleteAccountClick = () => {
-    setShowDeleteOverlay(true);
-    setOverlayAnimating(true);
+  // Maneja el clic en "Eliminar cuenta" para mostrar el overlay de confirmación.
+  const handleClickEliminarCuenta = () => {
+    setMostrarOverlay(true);
+    setOverlayAnimacionEnReproduccion(true);
   };
 
-  const handleDeleteAccount = async () => {
+  // Llama al endpoint del backend para eliminar la cuenta.
+  const handleEliminarCuenta = async () => {
     try {
       const response = await fetch('http://localhost:3004/eliminar-cuenta', {
         method: 'POST',
@@ -227,30 +297,31 @@ const Perfil: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-
         navigate('/login');
       } else {
-        setDeleteError(data.mensaje || 'Error al eliminar la cuenta');
+        setMensajeError(data.mensaje || 'Error al eliminar la cuenta');
       }
     } catch (error) {
       console.error('Error:', error);
-      setDeleteError('Error de conexión');
+      setMensajeError('Error de conexión');
     }
   };
 
-  const handleConfirmDelete = () => {
-    handleDeleteAccount();
+  // Maneja la confirmación de eliminación de cuenta.
+  const handleConfirmarEliminarCuenta = () => {
+    handleEliminarCuenta();
   };
 
-  const handleCancelDelete = () => {
-    setDeleteError('');
-    setOverlayAnimating(false);
+  // Maneja el cierre del overlay de confirmación sin eliminar la cuenta.
+  const handleCancelarEliminarCuenta = () => {
+
+    // Limpia el mensaje de error y quita la animacion.
+    setMensajeError('');
+    setOverlayAnimacionEnReproduccion(false);
     setTimeout(() => {
-      setShowDeleteOverlay(false);
+      setMostrarOverlay(false);
     }, 300);
   };
-
-  if (!usuario) return null;
 
   return (
     <div className='fondo'>
@@ -263,29 +334,29 @@ const Perfil: React.FC = () => {
             <div className='titulo-perfil'>
                 <p>¡Bienvenido a tu perfil! ¿Quieres modificar algo?</p>
             </div>
-            {errorMessage && (
+            {mensajeError && (
                 <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
-                    {errorMessage}
+                    {mensajeError}
                 </div>
             )}
             <div className='cuadro-correo'>
                 <div className='cuadro-correo-superior'>
                     <p>Tu correo electrónico actual es: <span>{usuario.email}</span></p>
                     {usuario.email !== 'admin@auscultify.com' && (
-                        <img src={editIcon} alt="Placeholder" className="placeholder-image" onClick={handleEditClick} />
+                        <img src={editIcon} alt="Placeholder" className="placeholder-image" onClick={handleEditarCorreo} />
                     )}
                 </div>
-                <div className={`cuadro-correo-inferior ${fadeOut ? 'fade-out' : ''}`}>
-                    {showInput && (
+                <div className={`cuadro-correo-inferior ${fadeOutCorreo ? 'fade-out' : ''}`}>
+                    {mostrarCorreo && (
                         <>
                             <input 
                                 placeholder="Introduce el nuevo correo electrónico"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
+                                value={nuevoCorreo}
+                                onChange={(e) => setNuevoCorreo(e.target.value)}
                             />
                             <div className="botones-container">
-                                <button className='cancelar-correo' onClick={handleCancelEmail}>Cancelar</button>
-                                <button className='aceptar-correo' onClick={handleEmailSubmit}>Aceptar</button>
+                                <button className='cancelar-correo' onClick={handleCancelar}>Cancelar</button>
+                                <button className='aceptar-correo' onClick={handleModificar}>Aceptar</button>
                             </div>
                         </>
                     )}
@@ -295,27 +366,27 @@ const Perfil: React.FC = () => {
             <div className="cuadro-contrasena">
               <div className='cuadro-contrasena-superior'>
                     <p>¿Deseas cambiar tu contraseña?</p>
-                    <img src={editIcon} alt="Placeholder" className="placeholder-image" onClick={handlePasswordEditClick} />
+                    <img src={editIcon} alt="Placeholder" className="placeholder-image" onClick={handleEditarContrasena} />
                 </div>
-                <div className={`cuadro-contrasena-inferior ${fadeOutPassword ? 'fade-out' : ''}`}>
-                    {showPasswordInput && (
+                <div className={`cuadro-contrasena-inferior ${fadeOutContrasena ? 'fade-out' : ''}`}>
+                    {mostrarContrasena && (
                         <>
                             <input 
                                 placeholder="Introduce la nueva contraseña"
                                 type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
+                                value={nuevaContrasena1}
+                                onChange={(e) => setNuevaContrasena1(e.target.value)}
                             />
                             <div className="segunda-linea-contrasena">
                                 <input 
                                     placeholder="Repite la contraseña"
                                     type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    value={nuevaContrasena2}
+                                    onChange={(e) => setNuevaContrasena2(e.target.value)}
                                 />
                                 <div className="botones-container">
-                                    <button className='cancelar-correo' onClick={handleCancelPassword}>Cancelar</button>
-                                    <button className='aceptar-correo' onClick={handlePasswordSubmit}>Aceptar</button>
+                                    <button className='cancelar-correo' onClick={handleCancelar}>Cancelar</button>
+                                    <button className='aceptar-correo' onClick={handleModificar}>Aceptar</button>
                                 </div>
                             </div>
                         </>
@@ -326,7 +397,7 @@ const Perfil: React.FC = () => {
             <div className='cuadro-ocultar'>
               <div className='cuadro-ocultar-superior'>
                 <p>Si quieres ocultar tu perfil, haz click aquí</p>
-                <div className={`toggle-switch ${isPublic ? 'active' : ''}`} onClick={handleTogglePublic}>
+                <div className={`toggle-switch ${esPublico ? 'active' : ''}`} onClick={handleCambiarPublico}>
                   <div className="toggle-slider"></div>
                 </div>
               </div>
@@ -334,24 +405,24 @@ const Perfil: React.FC = () => {
             
             <div className='cuadro-eliminar-cuenta'>
               {usuario.email !== 'admin@auscultify.com' && (
-                  <button className='eliminar-cuenta' onClick={handleDeleteAccountClick}>Eliminar cuenta</button>
+                  <button className='eliminar-cuenta' onClick={handleClickEliminarCuenta}>Eliminar cuenta</button>
               )}
             </div>
         </div>
 
-        {showDeleteOverlay && (
-          <div className={`overlay ${overlayAnimating ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
-            <div className={`overlay-content ${overlayAnimating ? 'content-fade-in' : 'content-fade-out'}`}>
+        {mostrarOverlay && (
+          <div className={`overlay ${overlayAnimacionEnReproduccion ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
+            <div className={`overlay-content ${overlayAnimacionEnReproduccion ? 'content-fade-in' : 'content-fade-out'}`}>
               <h2>¿Seguro que quieres eliminar la cuenta?</h2>
               <p>Si la eliminas se perderá todo tu progreso</p>
-              {deleteError && (
+              {mensajeError && (
                 <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
-                  {deleteError}
+                  {mensajeError}
                 </div>
               )}
               <div className="overlay-buttons">
-                <button className="overlay-cancel" onClick={handleCancelDelete}>Cancelar</button>
-                <button className="overlay-confirm" onClick={handleConfirmDelete}>Eliminar</button>
+                <button className="overlay-cancel" onClick={handleCancelarEliminarCuenta}>Cancelar</button>
+                <button className="overlay-confirm" onClick={handleConfirmarEliminarCuenta}>Eliminar</button>
               </div>
             </div>
           </div>
@@ -361,4 +432,5 @@ const Perfil: React.FC = () => {
 };
 
 export default Perfil;
+
 

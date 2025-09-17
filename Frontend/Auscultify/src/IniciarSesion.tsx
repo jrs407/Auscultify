@@ -4,13 +4,24 @@ import './IniciarSesion.css';
 
 const IniciarSesion: React.FC = () => {
   const navigate = useNavigate();
+
+  // Campos de texto del formulario.
   const [usuario, setUsuario] = React.useState('');
   const [contrasena, setContrasena] = React.useState('');
+
+  // Mensaje de error.
   const [error, setError] = React.useState('');
+
+  // Variable para asegurar que la sincronización solo se ejecuta una vez.
   const ejecutado = useRef<boolean>(false);
 
+
   React.useEffect(() => {
+
+    // Llamada al endpoint del backend para sincronizar datos.
     const sincronizarDatos = async () => {
+
+      // Si ya se ha ejecutado, no hacer nada.
       if (ejecutado.current) {
         return;
       }
@@ -31,10 +42,14 @@ const IniciarSesion: React.FC = () => {
       }
     };
 
+    // Ejecutar la sincronización de datos.
     sincronizarDatos();
   }, []);
 
+  // Llamada al endpoint del backend para iniciar sesión.
   const handleLogin = async () => {
+
+    // Reseteamos el mensaje de error.
     setError('');
     try {
       const response = await fetch('http://localhost:3002/login', {
@@ -54,6 +69,7 @@ const IniciarSesion: React.FC = () => {
 
       const data = await response.json();
 
+      // Navega a /home pasando los datos del usuario en el state
       navigate('/home', { state: { usuario: data.usuario } });
       
     } catch {
