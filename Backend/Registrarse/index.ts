@@ -32,53 +32,6 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
     next();
 });
 
-const crearAdmin = async () => {
-    try {
-
-        const [adminUser]: any = await pool.execute(
-            'SELECT idUsuario FROM Usuarios WHERE correoElectronico = ?',
-            ['admin@auscultify.com']
-        );
-
-        if (adminUser.length === 0) {
-
-            const contrasenaDefecto = 'a'; 
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(contrasenaDefecto, salt);
-
-            await pool.execute(
-                `INSERT INTO Usuarios (
-                    correoElectronico, 
-                    contrasena, 
-                    totalPreguntasAcertadas,
-                    totalPreguntasFalladas, 
-                    totalPreguntasContestadas,
-                    racha,
-                    esPublico,
-                    idCriterioMasUsado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    'admin@auscultify.com',
-                    hashedPassword,
-                    0,
-                    0,
-                    0, 
-                    0, 
-                    0,
-                    1 
-                ]
-            );
-
-            console.log('Admin user created successfully: admin@auscultify.com');
-        } else {
-            console.log('Admin user already exists');
-        }
-    } catch (error) {
-        console.error('Error initializing admin user:', error);
-    }
-};
-
-
 const registrarseHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
     const { usuario, contrasena1, contrasena2 } = req.body as {
@@ -86,8 +39,6 @@ const registrarseHandler: express.RequestHandler = async (req, res) => {
         contrasena1: string;
         contrasena2: string;
     };
-
-    await crearAdmin();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(usuario)) {

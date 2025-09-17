@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './IniciarSesion.css';
 
@@ -7,6 +7,32 @@ const IniciarSesion: React.FC = () => {
   const [usuario, setUsuario] = React.useState('');
   const [contrasena, setContrasena] = React.useState('');
   const [error, setError] = React.useState('');
+  const ejecutado = useRef<boolean>(false);
+
+  React.useEffect(() => {
+    const sincronizarDatos = async () => {
+      if (ejecutado.current) {
+        return;
+      }
+
+      ejecutado.current = true;
+
+      try {
+        await fetch('http://localhost:3016/sincronizar-datos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ email: 'system' })
+        });
+      } catch (error) {
+        console.log('Error al sincronizar datos:', error);
+      }
+    };
+
+    sincronizarDatos();
+  }, []);
 
   const handleLogin = async () => {
     setError('');
@@ -28,7 +54,6 @@ const IniciarSesion: React.FC = () => {
 
       const data = await response.json();
 
-      // Navega a /home pasando los datos del usuario en el state
       navigate('/home', { state: { usuario: data.usuario } });
       
     } catch {
