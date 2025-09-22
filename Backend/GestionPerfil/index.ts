@@ -32,10 +32,84 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
     next();
 });
 
+// Handler para eliminar la cuenta del usuario.
+const eliminarCuentaHandler: express.RequestHandler = async (req, res) => {
+    const pool = (req as any).db as Pool;
+
+    // Datos de entrada.
+    const { usuario, contrasena } = req.body as {
+        usuario: string;
+        contrasena: string;
+    };
+
+    try {
+
+        // Verificar que el usuario existe.
+        const [rows]: any = await pool.execute(
+            'SELECT * FROM Usuarios WHERE correoElectronico = ?',
+            [usuario]
+        );
+
+        // Si no se encuentra el usuario o la contraseña es incorrecta, devuelve un error.
+        if (rows.length === 0) {
+            res.status(401).json({ mensaje: 'Usuario o contraseña incorrectos' });
+            return;
+        }
+
+        // Si el usuario y la contraseña son correctos, se procede a eliminar los datos asociados al usuario.
+        const usuarioDb = rows[0];
+        
+        // Se inicia una transacción para asegurar la integridad de los datos.
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            // Se eliminan las respuestas del usuario.
+            await connection.execute(
+                'DELETE FROM Usuarios_has_Preguntas WHERE Usuarios_idUsuario = ?',
+                [usuarioDb.idUsuario]
+            );
+
+            // Se elimina el usuario de los seguidores y seguidos.
+            await connection.execute(
+                'DELETE FROM Usuarios_Seguidores WHERE idSeguidor = ?',
+                [usuarioDb.idUsuario]
+            );
+
+            await connection.execute(
+                'DELETE FROM Usuarios_Seguidores WHERE idSeguido = ?',
+                [usuarioDb.idUsuario]
+            );
+
+            // Se elimina el usuario.
+            await connection.execute(
+                'DELETE FROM Usuarios WHERE idUsuario = ?',
+                [usuarioDb.idUsuario]
+            );
+            
+            await connection.commit();
+            connection.release();
+
+            res.json({ mensaje: 'Cuenta eliminada exitosamente' });
+
+        } catch (error) {
+            await connection.rollback();
+            connection.release();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Error al eliminar la cuenta:', error);
+        res.status(500).json({ mensaje: 'Error en el servidor' });
+    }
+};
+
+
+// Handler para modificar el perfil del usuario.
 const modificarPerfilHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
 
-    // Datos de entrada
+    // Datos de entrada.
     const { userId, esPublico, nuevaContrasena, nuevoCorreo } = req.body as {
         userId: number;
         esPublico?: boolean;
@@ -130,6 +204,8 @@ const modificarPerfilHandler: express.RequestHandler = async (req, res) => {
 };
 
 app.put('/modificar-perfil', modificarPerfilHandler);
+
+app.post('/eliminar-cuenta', eliminarCuentaHandler);
 
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {

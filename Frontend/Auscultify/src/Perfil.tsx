@@ -284,7 +284,7 @@ const Perfil: React.FC = () => {
   // Llama al endpoint del backend para eliminar la cuenta.
   const handleEliminarCuenta = async () => {
     try {
-      const response = await fetch('http://localhost:3004/eliminar-cuenta', {
+      const response = await fetch('http://localhost:3003/eliminar-cuenta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
