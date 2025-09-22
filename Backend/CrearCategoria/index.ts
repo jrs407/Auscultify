@@ -77,6 +77,8 @@ const leerCategoriasDeArchivo = (): string[] => {
     }
 };
 
+
+// ELIMINAR, FUNCION YA NO UTILIZADA
 const sincronizarCategoriasDeArchivo = async (pool: Pool) => {
     try {
         const categoriasArchivo = leerCategoriasDeArchivo();
@@ -150,8 +152,6 @@ const sincronizarCategoriasDeArchivo = async (pool: Pool) => {
 const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
     const { nombreCategoria } = req.body as { nombreCategoria: string };
-
-    await sincronizarCategoriasDeArchivo(pool);
 
     if (!nombreCategoria) {
         res.status(400).json({ mensaje: 'El nombre de la categoría es requerido' });
