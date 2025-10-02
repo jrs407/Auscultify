@@ -70,6 +70,23 @@ services:
       - DB_NAME=mydb
       - DB_PORT=3306
 
+  gestion-siguiendo:
+    build:
+      context: ./Backend/GestionSiguiendo
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    depends_on:
+      - database
+    environment:
+      - PORT=3004
+      - JWT_SECRET=tu_secreto_jwt_super_seguro
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydb
+      - DB_PORT=3306
+
   obtener-usuarios-publicos:
     build: ./Backend/ObtenerUsuariosPublicos
     ports:

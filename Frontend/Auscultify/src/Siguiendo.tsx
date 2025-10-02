@@ -4,6 +4,8 @@ import './Siguiendo.css';
 import Sidebar from './components/Sidebar';
 
 interface LocationState {
+
+  // Definición de la estructura del estado pasado por el enrutador, en este caso son los datos del usuario.
   usuario: {
     id: string;
     email: string;
@@ -17,6 +19,8 @@ interface LocationState {
   };
 }
 
+
+// Definición de la estructura de un usuario público.
 interface UsuarioSeguido {
   email: string;
 }
@@ -24,14 +28,28 @@ interface UsuarioSeguido {
 const Siguiendo: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Estado para almacenar los datos del usuario.
   const [usuario] = useState((location.state as LocationState)?.usuario);
+
+  // Estado para gestionar qué botón del sidebar está seleccionado.
   const [selectedButton, setSelectedButton] = useState('siguiendo');
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // Estado y manejadores para la funcionalidad de búsqueda.
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+
+  // Interfaz para definir la estructura de un usuario público.
   interface UsuarioPublico {
     email: string;
   }
-  const [searchResults, setSearchResults] = useState<UsuarioPublico[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Estado para almacenar los resultados de la búsqueda.
+  const [resultadoBusqueda, setResultadoBusqueda] = useState<UsuarioPublico[]>([]);
+
+  // Estado para gestionar la carga durante la búsqueda.
+  const [estaCargando, setEstaCargando] = useState(false);
+
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [followingUser, setFollowingUser] = useState<string | null>(null);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
@@ -49,32 +67,32 @@ const Siguiendo: React.FC = () => {
 
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
-      if (searchTerm.trim()) {
+      if (terminoBusqueda.trim()) {
         handleSearch();
       } else {
-        setSearchResults([]);
+        setResultadoBusqueda([]);
         setShowDropdown(false);
       }
     }, 300);
 
     return () => clearTimeout(delayedSearch);
-  }, [searchTerm]);
+  }, [terminoBusqueda]);
 
   const handleButtonClick = (buttonName: string) => {
     setSelectedButton(buttonName);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setTerminoBusqueda(e.target.value);
   };
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+    if (!terminoBusqueda.trim()) return;
     
-    setIsLoading(true);
+    setEstaCargando(true);
     
     try {
-      const response = await fetch(`http://localhost:3005/obtener-usuarios-publicos?busqueda=${encodeURIComponent(searchTerm)}&usuarioActual=${encodeURIComponent(usuario.email)}`, {
+      const response = await fetch(`http://localhost:3005/obtener-usuarios-publicos?busqueda=${encodeURIComponent(terminoBusqueda)}&usuarioActual=${encodeURIComponent(usuario.email)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -83,19 +101,19 @@ const Siguiendo: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.usuarios || []);
+        setResultadoBusqueda(data.usuarios || []);
         setShowDropdown(true);
       } else {
         console.error('Error al buscar usuarios');
-        setSearchResults([]);
+        setResultadoBusqueda([]);
         setShowDropdown(false);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      setSearchResults([]);
+      setResultadoBusqueda([]);
       setShowDropdown(false);
     } finally {
-      setIsLoading(false);
+      setEstaCargando(false);
     }
   };
 
@@ -147,11 +165,11 @@ const Siguiendo: React.FC = () => {
         console.log('Usuario seguido exitosamente:', data.mensaje);
         setFollowedUsers(prev => new Set([...prev, emailSeguido]));
         
-        setSearchResults(prev => prev.filter(user => user.email !== emailSeguido));
+        setResultadoBusqueda(prev => prev.filter(user => user.email !== emailSeguido));
         
         await obtenerUsuariosSeguidos();
         
-        if (searchResults.length <= 1) {
+        if (resultadoBusqueda.length <= 1) {
           setShowDropdown(false);
         }
       } else {
@@ -208,11 +226,11 @@ const Siguiendo: React.FC = () => {
     }
 
     await seguirUsuario(selectedUser.email);
-    setSearchTerm('');
+    setTerminoBusqueda('');
   };
 
   const handleInputFocus = () => {
-    if (searchResults.length > 0) {
+    if (resultadoBusqueda.length > 0) {
       setShowDropdown(true);
     }
   };
@@ -240,7 +258,7 @@ const Siguiendo: React.FC = () => {
                   <input
                     type="text"
                     placeholder="¡Descubre a gente nueva!"
-                    value={searchTerm}
+                    value={terminoBusqueda}
                     onChange={handleSearchChange}
                     onFocus={handleInputFocus}
                     onBlur={handleInputBlur}
@@ -250,12 +268,12 @@ const Siguiendo: React.FC = () => {
                   
                   {showDropdown && (
                     <div className="dropdown-container">
-                      {isLoading ? (
+                      {estaCargando ? (
                         <div className="dropdown-item loading">
                           <p>Buscando usuarios...</p>
                         </div>
-                      ) : searchResults.length > 0 ? (
-                        searchResults.map((usuarioEncontrado, index) => (
+                      ) : resultadoBusqueda.length > 0 ? (
+                        resultadoBusqueda.map((usuarioEncontrado, index) => (
                           <div 
                             key={index} 
                             className={`dropdown-item ${followingUser === usuarioEncontrado.email ? 'following' : ''} ${followedUsers.has(usuarioEncontrado.email) ? 'followed' : ''}`}
