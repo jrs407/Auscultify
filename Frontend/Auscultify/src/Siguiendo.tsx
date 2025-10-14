@@ -64,7 +64,7 @@ const Siguiendo: React.FC = () => {
     
     // Realizar la petición al backend para obtener los usuarios seguidos.
     try {
-      const response = await fetch(`http://localhost:3007/obtener-siguiendo?email=${encodeURIComponent(usuario.email)}`, {
+      const response = await fetch(`http://localhost:3004/obtener-siguiendo?email=${encodeURIComponent(usuario.email)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const Siguiendo: React.FC = () => {
     
     // Realizar la petición al backend para buscar usuarios.
     try {
-      const response = await fetch(`http://localhost:3005/obtener-usuarios-publicos?busqueda=${encodeURIComponent(terminoBusqueda)}&usuarioActual=${encodeURIComponent(usuario.email)}`, {
+      const response = await fetch(`http://localhost:3004/obtener-usuarios-publicos?busqueda=${encodeURIComponent(terminoBusqueda)}&usuarioActual=${encodeURIComponent(usuario.email)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ const Siguiendo: React.FC = () => {
     
     // Realizar la petición al backend para seguir al usuario.
     try {
-      const response = await fetch('http://localhost:3006/seguir', {
+      const response = await fetch('http://localhost:3004/seguir', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +206,7 @@ const Siguiendo: React.FC = () => {
     
     // Realizar la petición al backend para dejar de seguir al usuario.
     try {
-      const response = await fetch('http://localhost:3008/eliminar-siguiendo', {
+      const response = await fetch('http://localhost:3004/eliminar-siguiendo', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
