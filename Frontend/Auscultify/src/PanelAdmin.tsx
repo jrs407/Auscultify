@@ -5,6 +5,8 @@ import './PanelAdmin.css';
 import uploadIcon from './assets/uploadIcon.png';
 
 interface LocationState {
+
+  // Definición de la estructura del estado pasado por el enrutador, en este caso son los datos del usuario.
   usuario: {
     id: string;
     email: string;
@@ -18,11 +20,13 @@ interface LocationState {
   };
 }
 
+// Definición de la estructura de una categoría.
 interface Categoria {
   idCategorias: number;
   nombreCategoria: string;
 }
 
+// Definición de la estructura de una pregunta.
 interface Pregunta {
   idPregunta: number;
   rutaAudio: string;
@@ -35,42 +39,89 @@ interface Pregunta {
 const PanelAdmin: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Estado para almacenar los datos del usuario.
   const usuario = (location.state as LocationState)?.usuario;
+
+  // Estado para gestionar qué botón del sidebar está seleccionado.
   const [selectedButton, setSelectedButton] = useState('admin');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isEliminarDropdownOpen, setIsEliminarDropdownOpen] = useState(false);
-  const [isEliminarPreguntaDropdownOpen, setIsEliminarPreguntaDropdownOpen] = useState(false);
-  const [selectedCriterio, setSelectedCriterio] = useState('Elija una categoría');
-  const [selectedEliminarCriterio, setSelectedEliminarCriterio] = useState('Elija una categoría');
-  const [selectedEliminarPregunta, setSelectedEliminarPregunta] = useState('Elija una pregunta');
+
+  // Estados para gestionar los distintos desplegables.
+  const [desplegableAbiertoCrear, setDesplegableAbiertoCrear] = useState(false);
+  const [desplegableAbiertoEliminarCategoria, setDesplegableAbiertoEliminarCategoria] = useState(false);
+  const [desplegableAbiertoEliminarPregunta, setDesplegableAbiertoEliminarPregunta] = useState(false);
+
+  // Estados para gestionar las categorias y preguntas seleccionadas en los desplegables.
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Elija una categoría');
+  const [categoriaEliminarSeleccionada, setCategoriaEliminarSeleccionada] = useState('Elija una categoría');
+  const [preguntaSeleccionada, setPreguntaSeleccionada] = useState('Elija una pregunta');
+
+  // Estado para almacenar el texto de la nueva categoría que se desea crear.
   const [nuevaCategoria, setNuevaCategoria] = useState('');
-  const [creandoCategoria, setCreandoCategoria] = useState(false);
-  const [errorCategoria, setErrorCategoria] = useState('');
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [cargandoCategorias, setCargandoCategorias] = useState(true);
-  const [eliminandoCategoria, setEliminandoCategoria] = useState(false);
-  const [errorEliminar, setErrorEliminar] = useState('');
-  const [showDeleteOverlay, setShowDeleteOverlay] = useState(false);
-  const [overlayAnimating, setOverlayAnimating] = useState(false);
+
+  // Estado para mostrar el overlay de confirmación de eliminación.
+  const [mostrarOverlayEliminar, setMostrarOverlayEliminar] = useState(false);
+
+  // Estado para manejar la animación del overlay.
+  const [overlayAnimacion, setOverlayAnimacion] = useState(false);
+
+  // Estado para determinar el tipo de eliminación ('categoria' | 'pregunta')
+  const [tipoEliminacion, setTipoEliminacion] = useState<'categoria' | 'pregunta'>('categoria');
+
+  // Estado para almacenar la categoría que se desea eliminar.
   const [categoriaParaEliminar, setCategoriaParaEliminar] = useState<Categoria | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState('');
+
+  // Estado para manejar la subida de archivos de audio.
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
+
+  // Estado para almacenar la respuesta asociada a la pregunta que se desea crear.
   const [respuesta, setRespuesta] = useState('');
+
+  // Estados para procesar la creación de una nueva categoría y pregunta.
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [creandoPregunta, setCreandoPregunta] = useState(false);
-  const [errorPregunta, setErrorPregunta] = useState('');
+
+  // Estados para almacenar las categorias y las preguntas obtenidas desde el backend.
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
+
+  // Estados para manejar la carga de categorías y preguntas desde el backend.
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [cargandoPreguntas, setCargandoPreguntas] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const eliminarDropdownRef = useRef<HTMLDivElement>(null);
-  const eliminarPreguntaDropdownRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Referencia para manejar los clics fuera de los desplegables.
+  const desplegableRef = useRef<HTMLDivElement>(null);
+
+  // Referencia del input de subida de archivos de audio
+  const archivoInputRef = useRef<HTMLInputElement>(null);
+
+  // Referencia para manejar la reproducción de audio de las preguntas.
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [showDeletePreguntaOverlay, setShowDeletePreguntaOverlay] = useState(false);
-  const [preguntaOverlayAnimating, setPreguntaOverlayAnimating] = useState(false);
-  const [preguntaParaEliminar, setPreguntaParaEliminar] = useState<Pregunta | null>(null);
+
+  // Estado para almacenar la pregunta que se desea eliminar.
+  const [preguntaParaEliminar, setPreguntaParaEliminar] = useState<Pregunta | null>(null)
+
+  // Estados para procesar la eliminación de una categoría y las preguntas.
+  const [eliminandoCategoria, setEliminandoCategoria] = useState(false);
   const [eliminandoPregunta, setEliminandoPregunta] = useState(false);
+
+  // Estados para manejar distintos errores.
+  const [errorCategoria, setErrorCategoria] = useState('');
+  const [errorEliminarCategoria, setErrorEliminarCategoria] = useState('');
+  const [errorSubida, setErrorSubida] = useState('');
+  const [errorPregunta, setErrorPregunta] = useState('');
   const [errorEliminarPregunta, setErrorEliminarPregunta] = useState('');
 
+
+  // Variables derivadas para simplificar el código del overlay de eliminación.
+  const estaEliminando = tipoEliminacion === 'categoria' ? eliminandoCategoria : eliminandoPregunta;
+  const errorEliminar = tipoEliminacion === 'categoria' ? errorEliminarCategoria : errorEliminarPregunta;
+  const nombreItem = tipoEliminacion === 'categoria' 
+    ? categoriaParaEliminar?.nombreCategoria 
+    : preguntaParaEliminar?.respuestaCorrecta;
+
+
+  // Función para formatear la respuesta eliminando acentos y capitalizando palabras.
   const formatearRespuesta = (texto: string): string => {
     return texto
       .trim()
@@ -83,6 +134,7 @@ const PanelAdmin: React.FC = () => {
       .join('');
   };
 
+  // Función para obtener las categorías desde el backend.
   const obtenerCategorias = async () => {
     try {
       setCargandoCategorias(true);
@@ -103,6 +155,7 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  // Función para obtener las preguntas desde el backend, opcionalmente filtradas por categoría.
   const obtenerPreguntas = async (categoria?: string) => {
     try {
       setCargandoPreguntas(true);
@@ -127,6 +180,7 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  // Efecto para redirigir al login si no hay usuario y para cargar categorías y preguntas al montar el componente.
   React.useEffect(() => {
     if (!usuario) {
       navigate('/login');
@@ -136,89 +190,115 @@ const PanelAdmin: React.FC = () => {
     }
   }, [usuario, navigate]);
 
+  // Efecto para manejar clics fuera de los desplegables y cerrarlos.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-      if (eliminarDropdownRef.current && !eliminarDropdownRef.current.contains(event.target as Node)) {
-        setIsEliminarDropdownOpen(false);
-      }
-      if (eliminarPreguntaDropdownRef.current && !eliminarPreguntaDropdownRef.current.contains(event.target as Node)) {
-        setIsEliminarPreguntaDropdownOpen(false);
+      if (desplegableRef.current && !desplegableRef.current.contains(event.target as Node)) {
+        // Cerrar cualquier desplegable activo
+        setDesplegableAbiertoCrear(false);
+        setDesplegableAbiertoEliminarCategoria(false);
+        setDesplegableAbiertoEliminarPregunta(false);
       }
     };
 
-    if (isDropdownOpen || isEliminarDropdownOpen || isEliminarPreguntaDropdownOpen) {
+    // Revisar si algún desplegable está abierto
+    const cualquierDesplegableActivo = desplegableAbiertoCrear || desplegableAbiertoEliminarCategoria || desplegableAbiertoEliminarPregunta;
+
+    if (cualquierDesplegableActivo) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen, isEliminarDropdownOpen, isEliminarPreguntaDropdownOpen]);
+  }, [desplegableAbiertoCrear, desplegableAbiertoEliminarCategoria, desplegableAbiertoEliminarPregunta]);
 
+  // Manejadores de eventos y funciones auxiliares.
   const handleButtonClick = (buttonName: string) => {
     setSelectedButton(buttonName);
   };
 
+  // Manejador para la subida de archivos de audio.
   const handleUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+    if (archivoInputRef.current) {
+      archivoInputRef.current.click();
     }
   };
 
+  // Manejador para la selección de archivos de audio.
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    setUploadError('');
+    setErrorSubida('');
     
     if (file) {
       const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/m4a', 'audio/aac', 'audio/mp4', 'video/mp4'];
       if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().match(/\.(mp3|wav|ogg|m4a|aac|mp4)$/)) {
-        setUploadError('Por favor selecciona un archivo de audio válido (MP3, WAV, OGG, M4A, AAC, MP4)');
-        setSelectedFile(null);
+        setErrorSubida('Por favor selecciona un archivo de audio válido (MP3, WAV, OGG, M4A, AAC, MP4)');
+        setArchivoSeleccionado(null);
         return;
       }
 
       const maxSize = 50 * 1024 * 1024;
       if (file.size > maxSize) {
-        setUploadError('El archivo es demasiado grande. El tamaño máximo permitido es 50MB');
-        setSelectedFile(null);
+        setErrorSubida('El archivo es demasiado grande. El tamaño máximo permitido es 50MB');
+        setArchivoSeleccionado(null);
         return;
       }
 
-      setSelectedFile(file);
+      setArchivoSeleccionado(file);
       console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
     }
   };
 
+  // Manejadores para abrir y cerrar los distintos desplegables.
+  const alternarDesplegable = (tipo: 'crearCategoria' | 'eliminarCategoria' | 'eliminarPregunta') => {
+    if (tipo === 'crearCategoria') {
+      const newState = !desplegableAbiertoCrear;
+      setDesplegableAbiertoCrear(newState);
+      if (newState) {
+        setDesplegableAbiertoEliminarCategoria(false);
+        setDesplegableAbiertoEliminarPregunta(false);
+      }
+      return;
+    } 
+    if (tipo === 'eliminarCategoria') {
+      const newState = !desplegableAbiertoEliminarCategoria;
+      setDesplegableAbiertoEliminarCategoria(newState);
+      if (newState) {
+        setDesplegableAbiertoCrear(false);
+        setDesplegableAbiertoEliminarPregunta(false);
+      }
+      return;
+    } 
+    
+    if (tipo === 'eliminarPregunta') {
+      const newState = !desplegableAbiertoEliminarPregunta;
+      setDesplegableAbiertoEliminarPregunta(newState);
+      if (newState) {
+        setDesplegableAbiertoCrear(false);
+        setDesplegableAbiertoEliminarCategoria(false);
+      }
+    }
+  };
+
+  // Manejador para seleccionar categorías en el desplegable de creacion.
   const handleCriterioSelect = (categoria: Categoria) => {
-    setSelectedCriterio(categoria.nombreCategoria);
-    setIsDropdownOpen(false);
+    setCategoriaSeleccionada(categoria.nombreCategoria);
+    setDesplegableAbiertoCrear(false);
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const toggleEliminarDropdown = () => {
-    setIsEliminarDropdownOpen(!isEliminarDropdownOpen);
-  };
-
-  const toggleEliminarPreguntaDropdown = () => {
-    setIsEliminarPreguntaDropdownOpen(!isEliminarPreguntaDropdownOpen);
-  };
-
+  // Manejador para seleccionar categorías en el desplegable de eliminación.
   const handleEliminarCriterioSelect = (categoria: Categoria) => {
-    setSelectedEliminarCriterio(categoria.nombreCategoria);
-    setIsEliminarDropdownOpen(false);
+    setCategoriaEliminarSeleccionada(categoria.nombreCategoria);
+    setDesplegableAbiertoEliminarCategoria(false);
   };
 
+  // Manejador para seleccionar preguntas en el desplegable de eliminación.
   const handleEliminarPreguntaSelect = (pregunta: string) => {
     stopAudio();
     
-    setSelectedEliminarPregunta(pregunta);
-    setIsEliminarPreguntaDropdownOpen(false);
+    setPreguntaSeleccionada(pregunta);
+    setDesplegableAbiertoEliminarPregunta(false);
     
     const preguntaSeleccionada = preguntas.find(p => p.respuestaCorrecta === pregunta);
     if (preguntaSeleccionada && preguntaSeleccionada.audioUrl) {
@@ -228,6 +308,7 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  // Función para crear una nueva categoría.
   const crearCategoria = async () => {
     setErrorCategoria('');
     
@@ -276,21 +357,33 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  // Función para eliminar una categoría.
   const eliminarCategoria = async () => {
-    setErrorEliminar('');
+    setErrorEliminarCategoria('');
   
-    const categoriaSeleccionada = categorias.find(cat => cat.nombreCategoria === selectedEliminarCriterio);
+    const categoriaSeleccionada = categorias.find(cat => cat.nombreCategoria === categoriaEliminarSeleccionada);
     if (!categoriaSeleccionada) {
-      setErrorEliminar('Categoría no encontrada');
+      setErrorEliminarCategoria('Categoría no encontrada');
       return;
     }
 
     setCategoriaParaEliminar(categoriaSeleccionada);
-    setShowDeleteOverlay(true);
-    setOverlayAnimating(true);
+    setTipoEliminacion('categoria');
+    setMostrarOverlayEliminar(true);
+    setOverlayAnimacion(true);
   };
 
+  // Manejador para confirmar la eliminación (categoría o pregunta).
   const handleConfirmDelete = async () => {
+    if (tipoEliminacion === 'categoria') {
+      await handleConfirmDeleteCategoria();
+    } else {
+      await handleConfirmDeletePregunta();
+    }
+  };
+
+  // Funcion para eliminar una categoría.
+  const handleConfirmDeleteCategoria = async () => {
     if (!categoriaParaEliminar) return;
 
     setEliminandoCategoria(true);
@@ -310,41 +403,45 @@ const PanelAdmin: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSelectedEliminarCriterio('Elija una categoría');
-        setErrorEliminar('');
+        setCategoriaEliminarSeleccionada('Elija una categoría');
+        setErrorEliminarCategoria('');
 
         handleCancelDelete();
 
         await obtenerCategorias();
       } else {
-        setErrorEliminar(data.mensaje || 'Error al eliminar la categoría');
+        setErrorEliminarCategoria(data.mensaje || 'Error al eliminar la categoría');
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      setErrorEliminar('Error de conexión con el servidor');
+      setErrorEliminarCategoria('Error de conexión con el servidor');
     } finally {
       setEliminandoCategoria(false);
     }
   };
 
+  // Función para cancelar la eliminación (categoría o pregunta).
   const handleCancelDelete = () => {
-    setErrorEliminar('');
-    setOverlayAnimating(false);
+    setErrorEliminarCategoria('');
+    setErrorEliminarPregunta('');
+    setOverlayAnimacion(false);
     setTimeout(() => {
-      setShowDeleteOverlay(false);
+      setMostrarOverlayEliminar(false);
       setCategoriaParaEliminar(null);
+      setPreguntaParaEliminar(null);
     }, 300);
   };
 
+  // Función para crear una nueva pregunta.
   const crearPregunta = async () => {
     setErrorPregunta('');
     
-    if (!selectedFile) {
+    if (!archivoSeleccionado) {
       setErrorPregunta('Debe seleccionar un archivo de audio');
       return;
     }
 
-    if (selectedCriterio === 'Elija una categoría') {
+    if (categoriaSeleccionada === 'Elija una categoría') {
       setErrorPregunta('Debe seleccionar una categoría');
       return;
     }
@@ -370,8 +467,8 @@ const PanelAdmin: React.FC = () => {
       const respuestaFormateada = formatearRespuesta(respuesta);
       
       const formData = new FormData();
-      formData.append('audio', selectedFile);
-      formData.append('categoria', selectedCriterio);
+      formData.append('audio', archivoSeleccionado);
+      formData.append('categoria', categoriaSeleccionada);
       formData.append('respuesta', respuestaFormateada);
 
       const response = await fetch('http://localhost:3012/crear-pregunta', {
@@ -382,12 +479,12 @@ const PanelAdmin: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSelectedFile(null);
+        setArchivoSeleccionado(null);
         setRespuesta('');
-        setSelectedCriterio('Elija una categoría');
+        setCategoriaSeleccionada('Elija una categoría');
         setErrorPregunta('');
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        if (archivoInputRef.current) {
+          archivoInputRef.current.value = '';
         }
         await obtenerPreguntas();
       } else {
@@ -401,20 +498,23 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
+  // Función para eliminar una pregunta.
   const eliminarPregunta = async () => {
     setErrorEliminarPregunta('');
   
-    const preguntaSeleccionada = preguntas.find(pregunta => pregunta.respuestaCorrecta === selectedEliminarPregunta);
-    if (!preguntaSeleccionada) {
+    const preguntaSeleccionadaConcreta = preguntas.find(pregunta => pregunta.respuestaCorrecta === preguntaSeleccionada);
+    if (!preguntaSeleccionadaConcreta) {
       setErrorEliminarPregunta('Pregunta no encontrada');
       return;
     }
 
-    setPreguntaParaEliminar(preguntaSeleccionada);
-    setShowDeletePreguntaOverlay(true);
-    setPreguntaOverlayAnimating(true);
+    setPreguntaParaEliminar(preguntaSeleccionadaConcreta);
+    setTipoEliminacion('pregunta');
+    setMostrarOverlayEliminar(true);
+    setOverlayAnimacion(true);
   };
 
+  // Funcion para eliminar una pregunta.
   const handleConfirmDeletePregunta = async () => {
     if (!preguntaParaEliminar) return;
 
@@ -434,10 +534,10 @@ const PanelAdmin: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSelectedEliminarPregunta('Elija una pregunta');
+        setPreguntaSeleccionada('Elija una pregunta');
         setErrorEliminarPregunta('');
 
-        handleCancelDeletePregunta();
+        handleCancelDelete();
 
         await obtenerPreguntas();
       } else {
@@ -451,15 +551,7 @@ const PanelAdmin: React.FC = () => {
     }
   };
 
-  const handleCancelDeletePregunta = () => {
-    setErrorEliminarPregunta('');
-    setPreguntaOverlayAnimating(false);
-    setTimeout(() => {
-      setShowDeletePreguntaOverlay(false);
-      setPreguntaParaEliminar(null);
-    }, 300);
-  };
-
+  // Funciones para reproducir y detener el audio de las preguntas.
   const playQuestionAudio = (audioUrl: string) => {
     try {
       if (audioRef.current) {
@@ -511,6 +603,7 @@ const PanelAdmin: React.FC = () => {
     };
   }, []);
 
+ 
   if (!usuario) return null;
 
   return (
@@ -531,39 +624,42 @@ const PanelAdmin: React.FC = () => {
             <div className='parte-superior-contenedor-upload'>
               <input
                 type="file"
-                ref={fileInputRef}
+                ref={archivoInputRef}
                 onChange={handleFileSelect}
                 accept=".mp3,.wav,.ogg,.m4a,.aac,.mp4,audio/*"
                 style={{ display: 'none' }}
               />
               <button 
-                className={`upload-button ${selectedFile && !uploadError ? 'uploaded' : ''}`}
+                className={`upload-button ${archivoSeleccionado && !errorSubida ? 'uploaded' : ''}`}
                 onClick={handleUpload}
               >
                 <img src={uploadIcon} alt="Upload" className="upload-button-icon" />
-                {selectedFile && !uploadError ? 'Audio subido' : 'Subir audio'}
-                {selectedFile && !uploadError && (
+                {archivoSeleccionado && !errorSubida ? 'Audio subido' : 'Subir audio'}
+                {archivoSeleccionado && !errorSubida && (
                   <span style={{ color: '#ffffff', fontSize: '2vh', marginLeft: '1vh' }}>✓</span>
                 )}
               </button>
-              {uploadError && (
+              {errorSubida && (
                 <div className="error-message" style={{ color: '#ff4444', fontSize: '1.6vh', marginTop: '1vh' }}>
-                  {uploadError}
+                  {errorSubida}
                 </div>
               )}
             </div>
 
             <div className='parte-superior-contenedor-desplegable-cuadro'>
               <div className='parte-superior-contenedor-desplegable'>
-                <div className="desplegable-superior" ref={dropdownRef}>
+                <div 
+                  className="desplegable-superior" 
+                  ref={desplegableAbiertoCrear ? desplegableRef : null}
+                >
                   <div 
                     className="cabecera-desplegable-superior"
-                    onClick={toggleDropdown}
+                    onClick={() => alternarDesplegable('crearCategoria')}
                   >
-                    <span>{cargandoCategorias ? 'Cargando...' : selectedCriterio}</span>
-                    <span className={`flecha-desplegable ${isDropdownOpen ? 'open' : ''}`}>▼</span>
+                    <span>{cargandoCategorias ? 'Cargando...' : categoriaSeleccionada}</span>
+                    <span className={`flecha-desplegable ${desplegableAbiertoCrear ? 'open' : ''}`}>▼</span>
                   </div>
-                  {isDropdownOpen && !cargandoCategorias && (
+                  {desplegableAbiertoCrear && !cargandoCategorias && (
                     <div className="desplegable-list">
                       {categorias.length === 0 ? (
                         <div className="desplegable-item" style={{ color: '#888', cursor: 'default' }}>
@@ -652,15 +748,19 @@ const PanelAdmin: React.FC = () => {
             <div className='parte-inferior-admin-izquierda'>
               <p>Eliminar categoria:</p>
               <div className='eliminar-categoria-desplegable'>
-                <div className="desplegable-superior" style={{ width: '20vw' }} ref={eliminarDropdownRef}>
+                <div 
+                  className="desplegable-superior" 
+                  style={{ width: '20vw' }} 
+                  ref={desplegableAbiertoEliminarCategoria ? desplegableRef : null}
+                >
                   <div 
                     className="cabecera-desplegable-superior"
-                    onClick={toggleEliminarDropdown}
+                    onClick={() => alternarDesplegable('eliminarCategoria')}
                   >
-                    <span>{cargandoCategorias ? 'Cargando...' : selectedEliminarCriterio}</span>
-                    <span className={`flecha-desplegable ${isEliminarDropdownOpen ? 'open' : ''}`}>▼</span>
+                    <span>{cargandoCategorias ? 'Cargando...' : categoriaEliminarSeleccionada}</span>
+                    <span className={`flecha-desplegable ${desplegableAbiertoEliminarCategoria ? 'open' : ''}`}>▼</span>
                   </div>
-                  {isEliminarDropdownOpen && !cargandoCategorias && (
+                  {desplegableAbiertoEliminarCategoria && !cargandoCategorias && (
                     <div className="desplegable-list-eliminar">
                       {categorias.length === 0 ? (
                         <div className="desplegable-item" style={{ color: '#888', cursor: 'default' }}>
@@ -680,8 +780,8 @@ const PanelAdmin: React.FC = () => {
                     </div>
                   )}
                 </div>
-                {errorEliminar && (
-                  <label className="error-label" style={{ fontSize: '12px', marginTop: '5px' }}>{errorEliminar}</label>
+                {errorEliminarCategoria && (
+                  <label className="error-label" style={{ fontSize: '12px', marginTop: '5px' }}>{errorEliminarCategoria}</label>
                 )}
               </div>
               <button 
@@ -696,15 +796,19 @@ const PanelAdmin: React.FC = () => {
             <div className='parte-inferior-admin-derecha'>
               <p>Eliminar pregunta:</p>
               <div className='eliminar-pregunta-desplegable'>
-                <div className="desplegable-superior" style={{ width: '20vw' }} ref={eliminarPreguntaDropdownRef}>
+                <div 
+                  className="desplegable-superior" 
+                  style={{ width: '20vw' }} 
+                  ref={desplegableAbiertoEliminarPregunta ? desplegableRef : null}
+                >
                   <div 
                     className="cabecera-desplegable-superior"
-                    onClick={toggleEliminarPreguntaDropdown}
+                    onClick={() => alternarDesplegable('eliminarPregunta')}
                   >
-                    <span>{selectedEliminarPregunta}</span>
-                    <span className={`flecha-desplegable ${isEliminarPreguntaDropdownOpen ? 'open' : ''}`}>▼</span>
+                    <span>{preguntaSeleccionada}</span>
+                    <span className={`flecha-desplegable ${desplegableAbiertoEliminarPregunta ? 'open' : ''}`}>▼</span>
                   </div>
-                  {isEliminarPreguntaDropdownOpen && (
+                  {desplegableAbiertoEliminarPregunta && (
                     <div className="desplegable-list-eliminar">
                       {cargandoPreguntas ? (
                         <div className="desplegable-item" style={{ color: '#888', cursor: 'default' }}>
@@ -747,12 +851,16 @@ const PanelAdmin: React.FC = () => {
         </div>
       </div>
 
-      {showDeleteOverlay && (
-        <div className={`overlay ${overlayAnimating ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
-          <div className={`overlay-content ${overlayAnimating ? 'content-fade-in' : 'content-fade-out'}`}>
-            <h2>¿Seguro que quieres eliminar la categoría?</h2>
+      {mostrarOverlayEliminar && (
+        <div className={`overlay ${overlayAnimacion ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
+          <div className={`overlay-content ${overlayAnimacion ? 'content-fade-in' : 'content-fade-out'}`}>
+            <h2>¿Seguro que quieres eliminar la {tipoEliminacion}?</h2>
             <p>
-              Se eliminará la categoría "<strong>{categoriaParaEliminar?.nombreCategoria}</strong>" y todas sus preguntas asociadas.
+              Se eliminará la {tipoEliminacion} "<strong>{nombreItem}</strong>" 
+              {tipoEliminacion === 'categoria' 
+                ? ' y todas sus preguntas asociadas.' 
+                : ' y su archivo de audio asociado.'
+              }
               <br />
               <br />
               Esta acción no se puede deshacer.
@@ -766,51 +874,16 @@ const PanelAdmin: React.FC = () => {
               <button 
                 className="overlay-cancel" 
                 onClick={handleCancelDelete}
-                disabled={eliminandoCategoria}
+                disabled={estaEliminando}
               >
                 Cancelar
               </button>
               <button 
                 className="overlay-confirm" 
                 onClick={handleConfirmDelete}
-                disabled={eliminandoCategoria}
+                disabled={estaEliminando}
               >
-                {eliminandoCategoria ? 'Eliminando...' : 'Eliminar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showDeletePreguntaOverlay && (
-        <div className={`overlay ${preguntaOverlayAnimating ? 'overlay-fade-in' : 'overlay-fade-out'}`}>
-          <div className={`overlay-content ${preguntaOverlayAnimating ? 'content-fade-in' : 'content-fade-out'}`}>
-            <h2>¿Seguro que quieres eliminar la pregunta?</h2>
-            <p>
-              Se eliminará la pregunta con respuesta "<strong>{preguntaParaEliminar?.respuestaCorrecta}</strong>" y su archivo de audio asociado.
-              <br />
-              <br />
-              Esta acción no se puede deshacer.
-            </p>
-            {errorEliminarPregunta && (
-              <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
-                {errorEliminarPregunta}
-              </div>
-            )}
-            <div className="overlay-buttons">
-              <button 
-                className="overlay-cancel" 
-                onClick={handleCancelDeletePregunta}
-                disabled={eliminandoPregunta}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="overlay-confirm" 
-                onClick={handleConfirmDeletePregunta}
-                disabled={eliminandoPregunta}
-              >
-                {eliminandoPregunta ? 'Eliminando...' : 'Eliminar'}
+                {estaEliminando ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
           </div>
