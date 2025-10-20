@@ -208,8 +208,30 @@ const crearCategoriaHandler: express.RequestHandler = async (req, res) => {
     }
 };
 
+// Handler para obtener todas las categorías
+const obtenerCategoriasHandler: express.RequestHandler = async (req, res) => {
+    const pool = (req as any).db as Pool;
+
+    try {
+        // Obtener todas las categorías de la base de datos
+        const [categorias]: any = await pool.execute(
+            'SELECT idCategorias, nombreCategoria FROM Categorias ORDER BY nombreCategoria'
+        );
+
+        res.status(200).json({
+            categorias: categorias,
+            total: categorias.length
+        });
+
+    } catch (error) {
+        console.error('Error al obtener categorías:', error);
+        res.status(500).json({ mensaje: 'Error en el servidor' });
+    }
+};
+
 
 app.post('/crear-categoria', crearCategoriaHandler);
+app.get('/obtener-categorias', obtenerCategoriasHandler);
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {

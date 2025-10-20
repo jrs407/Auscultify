@@ -138,7 +138,7 @@ const PanelAdmin: React.FC = () => {
   const obtenerCategorias = async () => {
     try {
       setCargandoCategorias(true);
-      const response = await fetch('http://localhost:3010/obtener-categorias');
+      const response = await fetch('http://localhost:3005/obtener-categorias');
       
       if (response.ok) {
         const data = await response.json();

@@ -106,25 +106,6 @@ services:
     volumes:
       - ./Audios:/app/Audios
 
-  obtener-categorias:
-    build: 
-      context: ./Backend/ObtenerCategorias
-      dockerfile: Dockerfile
-    ports:
-      - "3010:3010"
-    depends_on:
-      - database
-    environment:
-      - PORT=3010
-      - JWT_SECRET=tu_secreto_jwt_super_seguro
-      - DB_HOST=database
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=mydb
-      - DB_PORT=3306
-    volumes:
-      - ./Audios:/app/Audios
-
   eliminar-categoria:
     build: 
       context: ./Backend/EliminarCategoria
