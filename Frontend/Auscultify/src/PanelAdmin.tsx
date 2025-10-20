@@ -330,7 +330,7 @@ const PanelAdmin: React.FC = () => {
     setCreandoCategoria(true);
 
     try {
-      const response = await fetch('http://localhost:3009/crear-categoria', {
+      const response = await fetch('http://localhost:3005/crear-categoria', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
