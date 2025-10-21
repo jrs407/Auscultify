@@ -233,6 +233,16 @@ const Siguiendo: React.FC = () => {
     }
   };
 
+  // Función para ver las estadísticas de un usuario seguido.
+  const verEstadisticasUsuario = (usuarioSeguido: UsuarioPublico) => {
+    navigate('/estadisticas-grupal', { 
+      state: { 
+        usuario,
+        usuarioSeleccionado: usuarioSeguido
+      } 
+    });
+  };
+
   // Manejador para seleccionar un usuario de los resultados de búsqueda.
   const handleSeleccionarUsuario = async (selectedUser: UsuarioPublico) => {
 
@@ -335,11 +345,18 @@ const Siguiendo: React.FC = () => {
                   <div className='lista-usuarios-seguidos'>
                     {usuariosSeguidos.map((usuarioSeguido, index) => (
                       <div key={index} className='usuario-seguido-card'>
-                        <div className='usuario-seguido-info'>
+                        <div 
+                          className='usuario-seguido-info'
+                          onClick={() => verEstadisticasUsuario(usuarioSeguido)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           <span className='usuario-seguido-email'>{usuarioSeguido.email}</span>
                           <button 
                             className='unfollow-button'
-                            onClick={() => dejarDeSeguirUsuario(usuarioSeguido.email)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dejarDeSeguirUsuario(usuarioSeguido.email);
+                            }}
                             disabled={usuarioSeleccionado === usuarioSeguido.email}
                             style={{
                               opacity: usuarioSeleccionado === usuarioSeguido.email ? 0.5 : 1,
