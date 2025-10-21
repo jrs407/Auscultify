@@ -35,6 +35,8 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=mydb
       - DB_PORT=3306
+    volumes:
+      - ./Audios:/app/Audios
   
   gestion-autentificacion:
     build:
