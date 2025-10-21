@@ -229,9 +229,161 @@ const obtenerCategoriasHandler: express.RequestHandler = async (req, res) => {
     }
 };
 
+// Función para eliminar una categoría
+const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
+    const pool = (req as any).db as Pool;
+
+    // Parametros de entrada
+    const { idCategoria, nombreCategoria } = req.body as { 
+        idCategoria?: number; 
+        nombreCategoria?: string; 
+    };
+
+    // Comprobar que se ha proporcionado al menos un identificador o un nombre.
+    if (!idCategoria && !nombreCategoria) {
+        res.status(400).json({ mensaje: 'Se requiere el ID o el nombre de la categoría' });
+        return;
+    }
+
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+
+        // Variable para almacenar la categoría a eliminar
+        let categoriaParaEliminar: any = null;
+
+        // Obtener la categoría a eliminar según el ID o el nombre proporcionado
+        if (idCategoria) {
+            const [categoria]: any = await connection.execute(
+                'SELECT idCategorias, nombreCategoria FROM Categorias WHERE idCategorias = ?',
+                [idCategoria]
+            );
+            categoriaParaEliminar = categoria[0];
+        } else {
+            const [categoria]: any = await connection.execute(
+                'SELECT idCategorias, nombreCategoria FROM Categorias WHERE nombreCategoria = ?',
+                [nombreCategoria]
+            );
+            categoriaParaEliminar = categoria[0];
+        }
+
+        // Si no se encuentra la categoría, devolver un error 404.
+        if (!categoriaParaEliminar) {
+            await connection.rollback();
+            connection.release();
+            res.status(404).json({ mensaje: 'Categoría no encontrada' });
+            return;
+        }
+
+        // Obtener las preguntas asociadas a la categoría.
+        const [preguntasAsociadas]: any = await connection.execute(
+            'SELECT idPregunta FROM Preguntas WHERE Categorias_idCategorias = ?',
+            [categoriaParaEliminar.idCategorias]
+        );
+
+        // Variable para contar las preguntas eliminadas.
+        let preguntasEliminadas = 0;
+        
+        // Si hay preguntas asociadas, eliminarlas primero.
+        if (preguntasAsociadas.length > 0) {
+
+            // Eliminar las asociaciones en Usuarios_has_Preguntas.
+            for (const pregunta of preguntasAsociadas) {
+                await connection.execute(
+                    'DELETE FROM Usuarios_has_Preguntas WHERE Preguntas_idPregunta = ?',
+                    [pregunta.idPregunta]
+                );
+            }
+
+            // Eliminar las preguntas asociadas a la categoría.
+            const [resultadoPreguntas]: any = await connection.execute(
+                'DELETE FROM Preguntas WHERE Categorias_idCategorias = ?',
+                [categoriaParaEliminar.idCategorias]
+            );
+            
+            // Actualizar el contador de preguntas eliminadas.
+            preguntasEliminadas = resultadoPreguntas.affectedRows;
+        }
+
+        // Eliminar la categoría.
+        await connection.execute(
+            'DELETE FROM Categorias WHERE idCategorias = ?',
+            [categoriaParaEliminar.idCategorias]
+        );
+
+        await connection.commit();
+        connection.release();
+
+        // Eliminar la carpeta asociada a la categoría.
+        const carpetaEliminada = eliminarCarpetaCategoria(categoriaParaEliminar.nombreCategoria);
+        
+        // Si no se pudo eliminar la carpeta, registrar una advertencia.
+        if (!carpetaEliminada) {
+            console.warn(`No se pudo eliminar la carpeta para la categoría: ${categoriaParaEliminar.nombreCategoria}`);
+        }
+
+        await actualizarArchivoCategorias(pool);
+
+        res.status(200).json({
+            mensaje: 'Categoría eliminada correctamente',
+            categoria: {
+                id: categoriaParaEliminar.idCategorias,
+                nombre: categoriaParaEliminar.nombreCategoria
+            },
+            preguntasEliminadas: preguntasEliminadas,
+            carpetaEliminada: carpetaEliminada
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        connection.release();
+        
+        console.error('Error al eliminar categoría:', error);
+
+        if (error instanceof Error) {
+            if (error.message.includes('foreign key constraint')) {
+                res.status(400).json({ mensaje: 'No se puede eliminar la categoría porque tiene datos relacionados' });
+                return;
+            }
+        }
+        
+        res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la categoría' });
+    }
+};
+
+// Función para eliminar la carpeta de una categoría.
+const eliminarCarpetaCategoria = (nombreCategoria: string): boolean => {
+    const posiblesRutas = [
+        path.join(process.cwd(), 'Audios', nombreCategoria),
+        path.join(process.cwd(), '..', 'Audios', nombreCategoria),
+        path.join(process.cwd(), '..', '..', 'Audios', nombreCategoria),
+        path.join('/app', 'Audios', nombreCategoria),
+        path.join('/Audios', nombreCategoria)
+    ];
+
+    let carpetaEliminada = false;
+
+    for (const rutaPosible of posiblesRutas) {
+        try {
+            if (fs.existsSync(rutaPosible)) {
+                fs.rmSync(rutaPosible, { recursive: true, force: true });
+                console.log(`Carpeta eliminada exitosamente: ${rutaPosible}`);
+                carpetaEliminada = true;
+            }
+        } catch (error) {
+            console.log(`Error al eliminar carpeta en: ${rutaPosible}`, error);
+            continue;
+        }
+    }
+
+    return carpetaEliminada;
+};
+
 
 app.post('/crear-categoria', crearCategoriaHandler);
 app.get('/obtener-categorias', obtenerCategoriasHandler);
+app.delete('/eliminar-categoria', eliminarCategoriaHandler);
 
 const PORT = process.env.PORT || 3005;
 app.listen(PORT, () => {

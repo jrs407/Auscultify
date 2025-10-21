@@ -389,7 +389,7 @@ const PanelAdmin: React.FC = () => {
     setEliminandoCategoria(true);
 
     try {
-      const response = await fetch('http://localhost:3011/eliminar-categoria', {
+      const response = await fetch('http://localhost:3005/eliminar-categoria', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
