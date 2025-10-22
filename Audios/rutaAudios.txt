@@ -24,3 +24,7 @@ Pulmonar/PulmonarRespuesta327.m4a
 Pulmonar/PulmonarRespuesta428.m4a
 Pulmonar/PulmonarRespuesta529.m4a
 Miscelanea/Miscelanea30.m4a
+TestPortatil/Audioportatil11.m4a
+TestPortatil/Audioportatil22.m4a
+TestPortatil/Audioportatil33.m4a
+TestPortatil/Audioportatil44.m4a

@@ -138,7 +138,7 @@ const Siguiendo: React.FC = () => {
     } finally {
       setEstaCargando(false);
     }
-  }, [terminoBusqueda, usuario.email]);
+  }, [terminoBusqueda, usuario?.email]); // <-- safer dependency
 
   // Efecto para manejar la búsqueda con un retraso.
   useEffect(() => {
@@ -163,7 +163,11 @@ const Siguiendo: React.FC = () => {
   // Función para seguir a un usuario.
   const seguirUsuario = async (emailSeguido: string) => {
     setUsuarioSeleccionado(emailSeguido);
-    
+
+    // Optimistic UI: eliminar inmediatamente de los resultados y ocultar desplegable
+    setResultadoBusqueda(prev => prev.filter(user => user.email !== emailSeguido));
+    setMostrarDesplegable(false);
+
     // Realizar la petición al backend para seguir al usuario.
     try {
       const response = await fetch('http://localhost:3004/seguir', {
@@ -177,24 +181,22 @@ const Siguiendo: React.FC = () => {
         }),
       });
 
-      // Si la respuesta es correcta, actualizar la lista de usuarios seguidos y manejar el estado, si no, manejar el error.
       if (response.ok) {
         const data = await response.json();
         console.log('Usuario seguido exitosamente:', data.mensaje);
-        
-        setResultadoBusqueda(prev => prev.filter(user => user.email !== emailSeguido));
-        
+        // refrescar lista de seguidos
         await obtenerUsuariosSeguidos();
-        
-        if (resultadoBusqueda.length <= 1) {
-          setMostrarDesplegable(false);
-        }
       } else {
         const errorData = await response.json();
         console.error('Error al seguir usuario:', errorData.mensaje);
+        // Si falla, podríamos reinsertar el usuario en la lista (simple approach: refetch search)
+        // Re-fetch current search to restore results
+        handleBusqueda();
       }
     } catch (error) {
       console.error('Error de conexión al seguir usuario:', error);
+      // Re-fetch current search to restore results
+      handleBusqueda();
     } finally {
       setUsuarioSeleccionado(null);
     }
@@ -312,7 +314,10 @@ const Siguiendo: React.FC = () => {
                             <div 
                               key={index} 
                               className={`dropdown-item ${usuarioSeleccionado === usuarioEncontrado.email ? 'following' : ''} ${isAlreadyFollowed ? 'followed' : ''}`}
-                              onClick={() => handleSeleccionarUsuario(usuarioEncontrado)}
+                              onMouseDown={(e) => { // use mouseDown so selection fires before input blur hides dropdown
+                                e.preventDefault();
+                                handleSeleccionarUsuario(usuarioEncontrado);
+                              }}
                               style={{ 
                                 cursor: usuarioSeleccionado === usuarioEncontrado.email ? 'wait' : 'pointer',
                                 opacity: usuarioSeleccionado === usuarioEncontrado.email ? 0.7 : 1

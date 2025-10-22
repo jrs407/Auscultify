@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import './EstadisticasIndividual.css';
+import './EstadisticasGrupal.css';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -120,8 +120,8 @@ const EstadisticasGrupal: React.FC = () => {
             />
             <div className='segunda-mitad'>
                 <div className='contenido-estadisticas-individual'>
-                    <div className='contenedor-titulo-estadisticas-individual'>
-                        <p>Estadísticas personales</p>
+                    <div className='contenedor-titulo-estadisticas-grupal'>
+                        <p>Estadísticas entre amigos</p>
                     </div>
                     <div className='contenedor-datos-numericos-grupo-superior'>
                         <div className='contenedor-dato-numerico-individual'>
@@ -144,15 +144,9 @@ const EstadisticasGrupal: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Preguntas Falladas</p>
-                            </div>
+                    </div>
 
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasFalladas || 0}</p>
-                            </div>
-                        </div>
+                    <div className='contenedor-datos-numericos-grupo-inferior'>
 
                         <div className='contenedor-dato-numerico-individual'>
                             <div className='contenedor-dato-numerico-individual-titulo'>
@@ -163,9 +157,7 @@ const EstadisticasGrupal: React.FC = () => {
                                 <p>{estadisticasAdicionales?.datosUsuario.racha || 0}</p>
                             </div>
                         </div>
-                    </div>
 
-                    <div className='contenedor-datos-numericos-grupo-inferior'>
                         <div className='contenedor-dato-numerico-individual'>
                             <div className='contenedor-dato-numerico-individual-titulo'>
                                 <p>Promedio general</p>
@@ -176,120 +168,9 @@ const EstadisticasGrupal: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Mejor categoria</p>
-                            </div>
-
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p style={{fontSize: '1.5vw', marginTop: '0.5vh'}}>{estadisticasAdicionales?.categoriaMasUsada ?? 'N/A'}</p>
-                            </div>
-                        </div>
-
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p style={{fontSize: '0.9vw'}}>Promedio mejor categoria</p>
-                            </div>
-
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.porcentajeMejorCategoria || 0}%</p>
-                            </div>
-                        </div>
-
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p style={{fontSize: '0.9vw'}}>Promedio peor categoria</p>
-                            </div>
-
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.porcentajePeorCategoria || 0}%</p>
-                            </div>
-                        </div>
                     </div>
 
-                    <div className='contenedor-graficas'>
-                        {estadisticasAdicionales && (
-                            <>                    
-                                <div className='grafica-container'>
-                                    <h3>Tendencia de preguntas diarias</h3>
-                                    <Line
-                                        data={{
-                                            labels: ['Día -6', 'Día -5', 'Día -4', 'Día -3', 'Día -2', 'Ayer', 'Hoy'],
-                                            datasets: [
-                                                {
-                                                    label: 'Total de Preguntas',
-                                                    data: estadisticasAdicionales.preguntasPor7Dias,
-                                                    borderColor: '#FFD700',
-                                                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                                                    borderWidth: 3,
-                                                    fill: true,
-                                                },
-                                                {
-                                                    label: 'Preguntas Acertadas',
-                                                    data: estadisticasAdicionales.preguntasAcertadasPor7Dias,
-                                                    borderColor: '#4CAF50',
-                                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                                                    borderWidth: 3,
-                                                    fill: false,
-                                                },
-                                                {
-                                                    label: 'Preguntas Falladas',
-                                                    data: estadisticasAdicionales.preguntasfalladasPor7Dias,
-                                                    borderColor: '#F44336',
-                                                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                                                    borderWidth: 3,
-                                                    fill: false,
-                                                }
-                                            ],
-                                        }}
-                                        options={{
-                                            responsive: true,
-                                            plugins: {
-                                                legend: {
-                                                    position: 'top' as const,
-                                                    labels: {
-                                                        color: '#ffffff',
-                                                        font: {
-                                                            size: 12
-                                                        }
-                                                    }
-                                                },
-                                                title: {
-                                                    display: true,
-                                                    text: 'Actividad diaria',
-                                                    color: '#ffffff',
-                                                    font: {
-                                                        size: 14,
-                                                        weight: 'bold'
-                                                    }
-                                                },
-                                            },
-                                            scales: {
-                                                x: {
-                                                    ticks: {
-                                                        color: '#ffffff'
-                                                    },
-                                                    grid: {
-                                                        color: 'rgba(255, 255, 255, 0.1)'
-                                                    }
-                                                },
-                                                y: {
-                                                    beginAtZero: true,
-                                                    ticks: {
-                                                        stepSize: 1,
-                                                        color: '#ffffff'
-                                                    },
-                                                    grid: {
-                                                        color: 'rgba(255, 255, 255, 0.1)'
-                                                    }
-                                                },
-                                            },
-                                        }}
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </div>
+                    
                 </div>
             </div>
 

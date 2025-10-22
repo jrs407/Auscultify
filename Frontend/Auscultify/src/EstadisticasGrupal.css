@@ -1,0 +1,114 @@
+.contenido-estadisticas-grupal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.contenedor-titulo-estadisticas-grupal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 12vh;
+  width: 100%;
+}
+
+.contenedor-titulo-estadisticas-grupal p {
+  font-size: 2vw;
+  font-weight: bold;
+  color: white;
+}
+
+.contenedor-datos-numericos-grupo-superior {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height:15vh;
+  gap: 4vw;
+}
+
+.contenedor-dato-numerico-individual {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 12vw;
+  height: 11vh;
+  background-color: #425067;
+  border-radius: 1.2vh;
+  border: 0.5vh solid #6A82B1;
+  color: #ffffff;
+  font-size: 2vh;
+  font-weight: bold;
+  box-shadow: -4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.contenedor-dato-numerico-individual-titulo {
+  width:100%;
+  height: 4.5vh;
+  background-color: #556B8C;
+  border-top-left-radius: 1vh;
+  border-top-right-radius: 1vh;
+}
+
+.contenedor-dato-numerico-individual-titulo p {
+  font-size: 1.04vw;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-top: 0.5vh;
+}
+
+.contenedor-dato-numerico-individual-valor {
+  width:100%;
+  height: 6.5vh;
+}
+
+.contenedor-dato-numerico-individual-valor p {
+  font-size: 2.25vw;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-top: -1vh;
+}
+
+.contenedor-datos-numericos-grupo-inferior {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height:15vh;
+  gap: 4vw;
+}
+
+.contenedor-graficas {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  height: 36vh;
+}
+
+.grafica-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24vw;
+  height: 30vh;
+  background-color: #556B8C;
+  border-radius: 1vh;
+  border: 0.3vh solid #6A82B1;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.grafica-container h3 {
+  font-size: 1.2vw;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0 0 1vh 0;
+  text-align: center;
+}
