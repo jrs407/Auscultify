@@ -123,57 +123,119 @@ const EstadisticasGrupal: React.FC = () => {
                     <div className='contenedor-titulo-estadisticas-grupal'>
                         <p>Estadísticas entre amigos</p>
                     </div>
-                    <div className='contenedor-datos-numericos-grupo-superior'>
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Preguntas respondidas</p>
+
+                    <div className='contenedor-datos-numericos-grupo'>
+
+                        <div className='contenedor-datos-seguidor'>
+
+                            <div className='contenedor-datos-seguidor-titulo'>
+                                <p>Tus datos</p>
                             </div>
 
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasContestadas || 0}</p>
+                            <div className='contenedor-datos-numericos-grupo-superior-izquierda'>
+                                <div className='contenedor-dato-numerico-individual-seguidor'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-seguidor'>
+                                        <p>Preguntas respondidas</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-seguidor'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasContestadas || 0}</p>
+                                    </div>
+                                </div>
+
+                                <div className='contenedor-dato-numerico-individual-seguidor'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-seguidor'>
+                                        <p>Preguntas acertadas</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-seguidor'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasAcertadas || 0}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='contenedor-datos-numericos-grupo-inferior-izquierda'>
+                                <div className='contenedor-dato-numerico-individual-seguidor'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-seguidor'>
+                                        <p>Racha de días</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-seguidor'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.racha || 0}</p>
+                                    </div>
+                                </div>
+
+                                <div className='contenedor-dato-numerico-individual-seguidor'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-seguidor'>
+                                        <p>Promedio general</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-seguidor'>
+                                        <p>{estadisticasAdicionales?.porcentajeGeneral || 0}%</p>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Preguntas acertadas</p>
+
+                        <div className='contenedor-datos-siguiendo'>
+
+                            <div className='contenedor-datos-siguiendo-titulo'>
+                                <p>Datos de tu amigo</p>
                             </div>
 
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasAcertadas || 0}</p>
+                            <div className='contenedor-datos-numericos-grupo-superior-derecha'>
+                                <div className='contenedor-dato-numerico-individual-siguiendo'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
+                                        <p>Preguntas respondidas</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasContestadas || 0}</p>
+                                    </div>
+                                </div>
+
+                                <div className='contenedor-dato-numerico-individual-siguiendo'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
+                                        <p>Preguntas acertadas</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasAcertadas || 0}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='contenedor-datos-numericos-grupo-inferior-derecha'>
+                                <div className='contenedor-dato-numerico-individual-siguiendo'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
+                                        <p>Racha de días</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
+                                        <p>{estadisticasAdicionales?.datosUsuario.racha || 0}</p>
+                                    </div>
+                                </div>
+
+                                <div className='contenedor-dato-numerico-individual-siguiendo'>
+                                    <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
+                                        <p>Promedio general</p>
+                                    </div>
+
+                                    <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
+                                        <p>{estadisticasAdicionales?.porcentajeGeneral || 0}%</p>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
-                    </div>
 
-                    <div className='contenedor-datos-numericos-grupo-inferior'>
-
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Racha de días</p>
-                            </div>
-
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.datosUsuario.racha || 0}</p>
-                            </div>
-                        </div>
-
-                        <div className='contenedor-dato-numerico-individual'>
-                            <div className='contenedor-dato-numerico-individual-titulo'>
-                                <p>Promedio general</p>
-                            </div>
-
-                            <div className='contenedor-dato-numerico-individual-valor'>
-                                <p>{estadisticasAdicionales?.porcentajeGeneral || 0}%</p>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    
+                        
+                    </div>                    
                 </div>
             </div>
-
         </div>
     );
 } 
