@@ -180,7 +180,7 @@ const sincronizarDatosHandler: express.RequestHandler = async (req, res) => {
                 [
                     'admin@auscultify.com', contrasenaEncriptada, 0,
                     0, 0, 0,
-                    0, 0
+                    0, 1
                 ]
             );
 

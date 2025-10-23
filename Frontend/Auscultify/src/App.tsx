@@ -8,6 +8,7 @@ import PanelAdmin from './PanelAdmin';
 import ResponderPregunta from './ResponderPregunta';
 import Resultado from './Resultado';
 import EstadisticasIndividual from './EstadisticasIndividual';
+import EstadisticasGrupal from './EstadisticasGrupal';
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/responder-pregunta" element={<ResponderPregunta />} />
         <Route path="/resultado" element={<Resultado />} />
         <Route path="/estadisticas-individual" element={<EstadisticasIndividual />} />
+        <Route path="/estadisticas-grupal" element={<EstadisticasGrupal />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

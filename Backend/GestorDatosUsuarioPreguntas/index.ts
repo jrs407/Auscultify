@@ -268,8 +268,48 @@ const obtenerEstadisticasUsuarioHandler: express.RequestHandler = async (req, re
     }
 };
 
+const obtenerUsuarioPorCorreoHandler: express.RequestHandler = async (req, res) => {
+    const pool = (req as any).db as Pool;
+    const { correo } = req.query;
+
+    if (!correo) {
+        res.status(400).json({ mensaje: 'Correo electrónico es requerido' });
+        return;
+    }
+
+    try {
+        const [usuario]: any = await pool.execute(
+            'SELECT idUsuario, totalPreguntasContestadas, totalPreguntasAcertadas, racha FROM Usuarios WHERE correoElectronico = ?',
+            [correo]
+        );
+
+        if (usuario.length === 0) {
+            res.status(404).json({ mensaje: 'Usuario no encontrado' });
+            return;
+        }
+
+        const usuarioData = usuario[0];
+        const promedioGeneral = usuarioData.totalPreguntasContestadas > 0
+            ? Math.round((usuarioData.totalPreguntasAcertadas * 100) / usuarioData.totalPreguntasContestadas * 100) / 100
+            : 0;
+
+        res.json({
+            idUsuario: usuarioData.idUsuario,
+            totalPreguntasContestadas: usuarioData.totalPreguntasContestadas || 0,
+            totalPreguntasAcertadas: usuarioData.totalPreguntasAcertadas || 0,
+            racha: usuarioData.racha || 0,
+            promedioGeneral
+        });
+
+    } catch (error) {
+        console.error('Error al obtener usuario por correo:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
+};
+
 app.post('/actualizar-datos-usuario', actualizarDatosUsuarioHandler);
 app.get('/estadisticas-usuario/:usuarioId', obtenerEstadisticasUsuarioHandler);
+app.get('/obtener-usuario-correo', obtenerUsuarioPorCorreoHandler);
 
 const PORT = process.env.PORT || 3015;
 app.listen(PORT, () => {
