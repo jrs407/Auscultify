@@ -82,7 +82,6 @@
   width: 100%;
   height:15vh;
   gap: 4vw;
-  background-color: #00a216;
 }
 
 .contenedor-datos-numericos-grupo-superior-derecha {
@@ -92,7 +91,6 @@
   width: 100%;
   height:15vh;
   gap: 4vw;
-  background-color: #0500a2;
 }
 
 .contenedor-dato-numerico-individual {
@@ -147,7 +145,6 @@
   width: 100%;
   height:15vh;
   gap: 4vw;
-  background-color: #9aa200;
 }
 
 .contenedor-datos-numericos-grupo-inferior-derecha {
@@ -157,7 +154,6 @@
   width: 100%;
   height:15vh;
   gap: 4vw;
-  background-color: #a20000;
 }
 
 .contenedor-graficas {
@@ -190,7 +186,6 @@
 }
 
 
-/* Estilos para Seguidor (azulito) */
 .contenedor-dato-numerico-individual-seguidor {
   display: flex;
   flex-direction: column;
@@ -236,7 +231,7 @@
   margin-top: -1vh;
 }
 
-/* Estilos para Siguiendo (rosita) */
+
 .contenedor-dato-numerico-individual-siguiendo {
   display: flex;
   flex-direction: column;

@@ -61,6 +61,24 @@ interface EstadisticasResponse {
   datosUsuario: DatosUsuario;
 }
 
+interface EstadisticasAmigoResponse {
+  categoriaMasUsada: string | null;
+  porcentajeGeneral: number;
+  porcentajeMejorCategoria: number;
+  porcentajePeorCategoria: number;
+  preguntasPor7Dias: number[];
+  preguntasAcertadasPor7Dias: number[];
+  preguntasfalladasPor7Dias: number[];
+}
+
+interface DatosAmigo {
+  idUsuario: number;
+  totalPreguntasContestadas: number;
+  totalPreguntasAcertadas: number;
+  racha: number;
+  promedioGeneral: number;
+}
+
 const EstadisticasGrupal: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -68,6 +86,8 @@ const EstadisticasGrupal: React.FC = () => {
     const usuarioSeleccionado = (location.state as LocationState)?.usuarioSeleccionado;
     const [selectedButton, setSelectedButton] = useState('siguiendo');
     const [estadisticasAdicionales, setEstadisticasAdicionales] = useState<EstadisticasResponse | null>(null);
+    const [datosAmigo, setDatosAmigo] = useState<DatosAmigo | null>(null);
+    const [estadisticasAdicionalesAmigo, setEstadisticasAdicionalesAmigo] = useState<EstadisticasAmigoResponse | null>(null);
 
     React.useEffect(() => {
         if (!usuario) {
@@ -104,6 +124,66 @@ const EstadisticasGrupal: React.FC = () => {
 
         obtenerEstadisticasAdicionales();
     }, [usuario]);
+
+    useEffect(() => {
+        const obtenerDatosAmigo = async () => {
+            if (!usuarioSeleccionado?.email) return;
+
+            try {
+                const response = await fetch(`http://localhost:3015/obtener-usuario-correo?correo=${usuarioSeleccionado.email}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setDatosAmigo({
+                        idUsuario: data.idUsuario,
+                        totalPreguntasContestadas: data.totalPreguntasContestadas,
+                        totalPreguntasAcertadas: data.totalPreguntasAcertadas,
+                        racha: data.racha,
+                        promedioGeneral: data.promedioGeneral,
+                    });
+                } else {
+                    console.error('Error al obtener datos del amigo:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error al obtener datos del amigo:', error);
+            }
+        };
+
+        obtenerDatosAmigo();
+    }, [usuarioSeleccionado]);
+
+    useEffect(() => {
+        const obtenerEstadisticasAdicionalesAmigo = async () => {
+            if (!datosAmigo?.idUsuario) return;
+
+            try {
+                const response = await fetch(`http://localhost:3015/estadisticas-usuario/${datosAmigo.idUsuario}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setEstadisticasAdicionalesAmigo(data);
+                } else {
+                    console.error('Error al obtener estadísticas adicionales del amigo:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error al obtener estadísticas adicionales del amigo:', error);
+            }
+        };
+
+        obtenerEstadisticasAdicionalesAmigo();
+    }, [datosAmigo]);
 
     const handleButtonClick = (buttonName: string) => {
         setSelectedButton(buttonName);
@@ -190,9 +270,8 @@ const EstadisticasGrupal: React.FC = () => {
                                     <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
                                         <p>Preguntas respondidas</p>
                                     </div>
-
                                     <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
-                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasContestadas || 0}</p>
+                                        <p>{datosAmigo?.totalPreguntasContestadas || 0}</p>
                                     </div>
                                 </div>
 
@@ -200,9 +279,8 @@ const EstadisticasGrupal: React.FC = () => {
                                     <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
                                         <p>Preguntas acertadas</p>
                                     </div>
-
                                     <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
-                                        <p>{estadisticasAdicionales?.datosUsuario.totalPreguntasAcertadas || 0}</p>
+                                        <p>{datosAmigo?.totalPreguntasAcertadas || 0}</p>
                                     </div>
                                 </div>
                             </div>
@@ -212,9 +290,8 @@ const EstadisticasGrupal: React.FC = () => {
                                     <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
                                         <p>Racha de días</p>
                                     </div>
-
                                     <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
-                                        <p>{estadisticasAdicionales?.datosUsuario.racha || 0}</p>
+                                        <p>{datosAmigo?.racha || 0}</p>
                                     </div>
                                 </div>
 
@@ -222,18 +299,150 @@ const EstadisticasGrupal: React.FC = () => {
                                     <div className='contenedor-dato-numerico-individual-titulo-siguiendo'>
                                         <p>Promedio general</p>
                                     </div>
-
                                     <div className='contenedor-dato-numerico-individual-valor-siguiendo'>
-                                        <p>{estadisticasAdicionales?.porcentajeGeneral || 0}%</p>
+                                        <p>{datosAmigo?.promedioGeneral || 0}%</p>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
 
 
                         
-                    </div>                    
+                    </div>  
+
+                    <div className='contenedor-graficas'>
+                        {estadisticasAdicionales && (
+                            <div className='grafica-container'>
+                                <h3>Actividad del seguidor</h3>
+                                <Line
+                                    data={{
+                                        labels: ['Día -6', 'Día -5', 'Día -4', 'Día -3', 'Día -2', 'Ayer', 'Hoy'],
+                                        datasets: [
+                                            {
+                                                label: 'Total de Preguntas',
+                                                data: estadisticasAdicionales.preguntasPor7Dias,
+                                                borderColor: '#FFD700',
+                                                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                                borderWidth: 3,
+                                                fill: true,
+                                            },
+                                            {
+                                                label: 'Preguntas Acertadas',
+                                                data: estadisticasAdicionales.preguntasAcertadasPor7Dias,
+                                                borderColor: '#4CAF50',
+                                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                                borderWidth: 3,
+                                                fill: false,
+                                            },
+                                            {
+                                                label: 'Preguntas Falladas',
+                                                data: estadisticasAdicionales.preguntasfalladasPor7Dias,
+                                                borderColor: '#F44336',
+                                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                                borderWidth: 3,
+                                                fill: false,
+                                            }
+                                        ],
+                                    }}
+                                    options={{
+                                        responsive: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'top',
+                                                labels: {
+                                                    color: '#ffffff',
+                                                    font: { size: 12 }
+                                            }
+                                        },
+                                        title: {
+                                            display: true,
+                                            text: 'Actividad diaria del seguidor',
+                                            color: '#ffffff',
+                                            font: { size: 14, weight: 'bold' }
+                                        },
+                                    },
+                                    scales: {
+                                        x: {
+                                            ticks: { color: '#ffffff' },
+                                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                                        },
+                                        y: {
+                                            beginAtZero: true,
+                                            ticks: { stepSize: 1, color: '#ffffff' },
+                                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                                        },
+                                    },
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {estadisticasAdicionalesAmigo && (
+                            <div className='grafica-container'>
+                                <h3>Actividad de tu amigo</h3>
+                                <Line
+                                    data={{
+                                        labels: ['Día -6', 'Día -5', 'Día -4', 'Día -3', 'Día -2', 'Ayer', 'Hoy'],
+                                        datasets: [
+                                            {
+                                                label: 'Total de Preguntas',
+                                                data: estadisticasAdicionalesAmigo.preguntasPor7Dias,
+                                                borderColor: '#FFD700',
+                                                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                                borderWidth: 3,
+                                                fill: true,
+                                            },
+                                            {
+                                                label: 'Preguntas Acertadas',
+                                                data: estadisticasAdicionalesAmigo.preguntasAcertadasPor7Dias,
+                                                borderColor: '#4CAF50',
+                                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                                borderWidth: 3,
+                                                fill: false,
+                                            },
+                                            {
+                                                label: 'Preguntas Falladas',
+                                                data: estadisticasAdicionalesAmigo.preguntasfalladasPor7Dias,
+                                                borderColor: '#F44336',
+                                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                                borderWidth: 3,
+                                                fill: false,
+                                            }
+                                        ],
+                                    }}
+                                    options={{
+                                        responsive: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'top',
+                                                labels: {
+                                                    color: '#ffffff',
+                                                    font: { size: 12 }
+                                            }
+                                        },
+                                        title: {
+                                            display: true,
+                                            text: 'Actividad diaria de tu amigo',
+                                            color: '#ffffff',
+                                            font: { size: 14, weight: 'bold' }
+                                        },
+                                    },
+                                    scales: {
+                                        x: {
+                                            ticks: { color: '#ffffff' },
+                                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                                        },
+                                        y: {
+                                            beginAtZero: true,
+                                            ticks: { stepSize: 1, color: '#ffffff' },
+                                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                                        },
+                                    },
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
