@@ -159,6 +159,14 @@ INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, 
 VALUES (9, 'Te pone preguntas que otros usuarios en la aplicacion similares a ti han acertado.', 'Preguntas que otros usuarios similares aciertan')
 ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
 
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (10, 'Te recomienda preguntas basandose en la similitud entre preguntas que otros usuarios han fallado juntas.', 'Algoritmo basado en items - Preguntas similares que fallan')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
+INSERT INTO `mydb`.`CriterioAlgoritmo` (`idCriterioAlgoritmo`, `textoCriterio`, `tituloCriterio`)
+VALUES (11, 'Te recomienda preguntas basandose en la similitud entre preguntas que otros usuarios han acertado juntas.', 'Algoritmo basado en items - Preguntas similares que aciertan')
+ON DUPLICATE KEY UPDATE textoCriterio=VALUES(textoCriterio);
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

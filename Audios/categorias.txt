@@ -1,7 +1,5 @@
 Abdominal
 Cardiaco
-Miscelanea
 Patata
 Prueba
 Pulmonar
-TestPortatil
