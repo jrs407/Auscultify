@@ -6,7 +6,8 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   database:
     image: mysql:8.0
@@ -18,6 +19,12 @@ services:
     volumes:
       - ./BaseDatos/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
 
   sincronizar-datos:
     build: 
@@ -26,7 +33,8 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3001
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -45,7 +53,8 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3002
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -62,7 +71,8 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3003
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -79,7 +89,8 @@ services:
     ports:
       - "3004:3004"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3004
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -96,7 +107,8 @@ services:
     ports:
       - "3005:3005"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3005
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -115,7 +127,8 @@ services:
     ports:
       - "3012:3012"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3012
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -134,7 +147,8 @@ services:
     ports:
       - "3013:3013"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3013
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -151,7 +165,8 @@ services:
     ports:
       - "3014:3014"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3014
       - JWT_SECRET=tu_secreto_jwt_super_seguro
@@ -168,7 +183,8 @@ services:
     ports:
       - "3015:3015"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=3015
       - JWT_SECRET=tu_secreto_jwt_super_seguro

@@ -64,7 +64,10 @@ const upload = multer({
     }
 });
 
-const actualizarArchivoRutasAudios = async (rutaAudio: string) => {
+// Cada línea de rutaAudios.txt tiene el formato "Categoria/archivo.m4a|Respuesta".
+const obtenerRutaDeLinea = (linea: string): string => linea.split('|')[0].trim().replace(/\\/g, '/');
+
+const actualizarArchivoRutasAudios = async (rutaAudio: string, respuesta: string) => {
     try {
         const rutaAudios = path.join(process.cwd(), 'Audios');
         const rutaArchivoRutas = path.join(rutaAudios, 'rutaAudios.txt');
@@ -82,8 +85,9 @@ const actualizarArchivoRutasAudios = async (rutaAudio: string) => {
                 .filter(linea => linea.length > 0);
         }
 
-        if (!rutasExistentes.includes(rutaAudio)) {
-            rutasExistentes.push(rutaAudio);
+        const rutaNormalizada = rutaAudio.replace(/\\/g, '/');
+        if (!rutasExistentes.some(linea => obtenerRutaDeLinea(linea) === rutaNormalizada)) {
+            rutasExistentes.push(`${rutaNormalizada}|${respuesta}`);
         }
 
         const contenidoFinal = rutasExistentes.join('\n');
@@ -193,7 +197,7 @@ const crearPreguntaHandler: express.RequestHandler = async (req, res) => {
             [rutaRelativa, idPregunta]
         );
 
-        await actualizarArchivoRutasAudios(rutaRelativa);
+        await actualizarArchivoRutasAudios(rutaRelativa, respuesta.trim());
 
         res.status(201).json({
             mensaje: 'Pregunta creada correctamente',
@@ -279,11 +283,12 @@ const eliminarRutaDeArchivoRutas = async (rutaAudioEliminar: string) => {
             return;
         }
 
+        const rutaNormalizada = rutaAudioEliminar.replace(/\\/g, '/');
         const contenido = fs.readFileSync(rutaArchivoRutas, 'utf8');
         const rutasExistentes = contenido
             .split('\n')
             .map(linea => linea.trim())
-            .filter(linea => linea.length > 0 && linea !== rutaAudioEliminar);
+            .filter(linea => linea.length > 0 && obtenerRutaDeLinea(linea) !== rutaNormalizada);
 
         const contenidoFinal = rutasExistentes.join('\n');
         fs.writeFileSync(rutaArchivoRutas, contenidoFinal, 'utf8');

@@ -35,178 +35,178 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
     next();
 });
 
-// Función para leer categorías desde el archivo categorias.txt
-const leerCategoriasDeArchivo = (): string[] => {
-    try {
+// Ruta de la carpeta Audios (montada como volumen en Docker).
+const RUTA_AUDIOS = path.join(process.cwd(), 'Audios');
 
-        // Construir la ruta al archivo categorias.txt
-        const rutaAudios = path.join(process.cwd(), 'Audios');
-        const rutaArchivoCategorias = path.join(rutaAudios, 'categorias.txt');
+// Función para leer las líneas no vacías de un archivo de la carpeta Audios.
+const leerLineasDeArchivo = (nombreArchivo: string): string[] => {
+    const rutaArchivo = path.join(RUTA_AUDIOS, nombreArchivo);
 
-        // Intentar leer el archivo desde varias ubicaciones posibles
-        if (fs.existsSync(rutaArchivoCategorias)) {
-            const contenido = fs.readFileSync(rutaArchivoCategorias, 'utf8');
-
-            // Dividir el contenido en líneas y limpiar espacios en blanco
-            const categorias = contenido
-                .split('\n')
-                .map(linea => linea.trim())
-                .filter(linea => linea.length > 0);
-
-            console.log(`Total de categorías encontradas: ${categorias.length}`);
-            return categorias;
-        } else {
-            console.log(`No se encontró el archivo categorias.txt en: ${rutaArchivoCategorias}`);
-            return [];
-        }
-    } catch (error) {
-        console.log('Error leyendo archivo categorias.txt:', error);
+    if (!fs.existsSync(rutaArchivo)) {
+        console.log(`No se encontró el archivo ${nombreArchivo} en: ${rutaArchivo}`);
         return [];
     }
+
+    // Dividir el contenido en líneas y limpiar espacios en blanco (incluido el \r de Windows)
+    return fs.readFileSync(rutaArchivo, 'utf8')
+        .split('\n')
+        .map(linea => linea.trim())
+        .filter(linea => linea.length > 0);
 };
 
-// Función para sincronizar categorías desde el archivo a la base de datos
-const sincronizarCategoriasDeArchivo = async (pool: Pool) => {
+// Función para leer las preguntas desde el archivo rutaAudios.txt.
+// Cada línea tiene el formato "Categoria/archivo.m4a|Respuesta".
+const leerPreguntasDeArchivo = (): { ruta: string; categoria: string; respuesta: string }[] => {
+    return leerLineasDeArchivo('rutaAudios.txt').map(linea => {
+        const [rutaCruda, respuestaCruda] = linea.split('|');
+        const ruta = rutaCruda.trim().replace(/\\/g, '/');
+        const categoria = ruta.split('/')[0];
+
+        // Si la línea no trae respuesta, se usa el nombre del archivo sin extensión
+        const respuesta = respuestaCruda?.trim() || path.basename(ruta, path.extname(ruta));
+
+        return { ruta, categoria, respuesta };
+    });
+};
+
+// Función para sincronizar el admin, las categorías y las preguntas de la carpeta Audios con la base de datos.
+// Es idempotente: solo inserta lo que todavía no existe.
+const sincronizarDatos = async (pool: Pool): Promise<string[]> => {
+    const arrayConfirmacion: string[] = [];
+
+    // Parte 1: Creación del admin para asegurar su existencia.
+    const [obtenerAdmin]: any = await pool.execute(
+        'SELECT idUsuario FROM Usuarios WHERE correoElectronico = ?',
+        ['admin@auscultify.com']
+    );
+
+    if (obtenerAdmin.length === 0) {
+
+        // Creamos un string basico para encriptarlo y que sea la contraseña inicial del admin
+        const salt = await bcrypt.genSalt(10);
+        const contrasenaEncriptada = await bcrypt.hash('admin', salt);
+
+        await pool.execute(
+            `INSERT INTO Usuarios (
+                correoElectronico, contrasena, totalPreguntasAcertadas,
+                totalPreguntasFalladas, totalPreguntasContestadas, racha,
+                esPublico, idCriterioMasUsado
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            ['admin@auscultify.com', contrasenaEncriptada, 0, 0, 0, 0, 0, 1]
+        );
+
+        arrayConfirmacion.push('Admin creado exitosamente.');
+        console.log('Admin creado exitosamente: "admin@auscultify.com" con contraseña "admin"');
+    } else {
+        arrayConfirmacion.push('El admin ya existía previamente.');
+    }
+
+    // Parte 2: Categorías. Se toman de categorias.txt y de las rutas de los audios que existen en disco.
+    const preguntasArchivo = leerPreguntasDeArchivo().filter(pregunta => {
+        const existe = fs.existsSync(path.join(RUTA_AUDIOS, pregunta.ruta));
+        if (!existe) {
+            console.warn(`Audio no encontrado, se omite: ${pregunta.ruta}`);
+        }
+        return existe;
+    });
+    const nombresCategorias = new Set([
+        ...leerLineasDeArchivo('categorias.txt'),
+        ...preguntasArchivo.map(p => p.categoria)
+    ]);
+
+    const [categoriasExistentes]: any = await pool.execute(
+        'SELECT idCategorias, nombreCategoria FROM Categorias'
+    );
+
+    // Mapa nombre -> id para poder asignar las preguntas a su categoría
+    const idsCategorias = new Map<string, number>(
+        categoriasExistentes.map((cat: any) => [cat.nombreCategoria, cat.idCategorias])
+    );
+
+    let categoriasCreadas = 0;
+    for (const categoria of nombresCategorias) {
+        if (!idsCategorias.has(categoria)) {
+            const [resultado]: any = await pool.execute(
+                'INSERT INTO Categorias (nombreCategoria) VALUES (?)',
+                [categoria]
+            );
+            idsCategorias.set(categoria, resultado.insertId);
+            categoriasCreadas++;
+        }
+
+        // Se asegura que exista la carpeta de la categoría
+        const rutaCategoria = path.join(RUTA_AUDIOS, categoria);
+        if (!fs.existsSync(rutaCategoria)) {
+            fs.mkdirSync(rutaCategoria, { recursive: true });
+        }
+    }
+
+    arrayConfirmacion.push(`Categorías sincronizadas: ${categoriasCreadas} nuevas.`);
+    console.log(`Categorías sincronizadas: ${categoriasCreadas} nuevas de ${nombresCategorias.size} en archivo.`);
+
+    // Parte 3: Preguntas. Se crea una pregunta por cada audio que no esté ya en la base de datos.
+    const [preguntasExistentes]: any = await pool.execute('SELECT urlAudio FROM Preguntas');
+    const rutasExistentes = new Set<string>(
+        preguntasExistentes.map((p: any) => String(p.urlAudio).replace(/\\/g, '/'))
+    );
+
+    let preguntasCreadas = 0;
+    for (const pregunta of preguntasArchivo) {
+        if (rutasExistentes.has(pregunta.ruta)) {
+            continue;
+        }
+
+        await pool.execute(
+            'INSERT INTO Preguntas (urlAudio, respuestaCorrecta, Categorias_idCategorias) VALUES (?, ?, ?)',
+            [pregunta.ruta, pregunta.respuesta, idsCategorias.get(pregunta.categoria)]
+        );
+        rutasExistentes.add(pregunta.ruta);
+        preguntasCreadas++;
+    }
+
+    arrayConfirmacion.push(`Preguntas sincronizadas: ${preguntasCreadas} nuevas.`);
+    console.log(`Preguntas sincronizadas: ${preguntasCreadas} nuevas de ${preguntasArchivo.length} en archivo.`);
+
+    return arrayConfirmacion;
+};
+
+// Evita que dos sincronizaciones (arranque y endpoint) se ejecuten a la vez y dupliquen datos.
+let sincronizacionEnCurso: Promise<string[]> | null = null;
+
+const sincronizarDatosUnaVez = (pool: Pool): Promise<string[]> => {
+    if (!sincronizacionEnCurso) {
+        sincronizacionEnCurso = sincronizarDatos(pool).finally(() => {
+            sincronizacionEnCurso = null;
+        });
+    }
+    return sincronizacionEnCurso;
+};
+
+// Sincroniza al arrancar el servicio, reintentando mientras la base de datos no esté lista.
+const sincronizarAlArrancar = async (intentosRestantes = 40) => {
     try {
-        // Se obtienen las categorías del archivo
-        const categoriasArchivo = leerCategoriasDeArchivo();
-        
-        // Si no hay categorías en el archivo, no se hace nada
-        if (categoriasArchivo.length === 0) {
-            console.log('No hay categorías para sincronizar');
+        await sincronizarDatosUnaVez(pool);
+        console.log('Sincronización inicial completada.');
+    } catch (error) {
+        if (intentosRestantes <= 0) {
+            console.error('No se pudo realizar la sincronización inicial:', error);
             return;
         }
-
-        // Se obtienen las categorías existentes en la base de datos
-        const [categoriasExistentes]: any = await pool.execute(
-            'SELECT nombreCategoria FROM Categorias'
-        );
-        
-        // Se crea un conjunto para facilitar la verificación de existencia
-        const nombresExistentes = new Set(
-            categoriasExistentes.map((cat: any) => cat.nombreCategoria)
-        );
-
-        // Se insertan las categorías que no existen en la base de datos
-        for (const categoria of categoriasArchivo) {
- 
-            // Si la categoría ya existe, se omite
-            if (nombresExistentes.has(categoria)) {
-                console.log(`Categoría ya existe: "${categoria}"`);
-                continue;
-            }
-
-            try {
-                // Se inserta la nueva categoría en la base de datos
-                await pool.execute(
-                    'INSERT INTO Categorias (nombreCategoria) VALUES (?)',
-                    [categoria]
-                );
-
-                // Se crea la carpeta correspondiente en el sistema de archivos
-                const posiblesRutas = [
-                    path.join(process.cwd(), 'Audios', categoria),
-                    path.join(process.cwd(), '..', 'Audios', categoria),
-                    path.join(process.cwd(), '..', '..', 'Audios', categoria),
-                    path.join('/app', 'Audios', categoria),
-                    path.join('/Audios', categoria)
-                ];
-
-                // Se intenta crear la carpeta en una de las rutas posibles
-                let carpetaCreada = false;
-
-                // Intentar crear la carpeta en cada una de las rutas posibles
-                for (const rutaPosible of posiblesRutas) {
-                    try {
-                        const directorioBase = path.dirname(rutaPosible);
-                        if (!fs.existsSync(directorioBase)) {
-                            fs.mkdirSync(directorioBase, { recursive: true });
-                        }
-
-                        if (!fs.existsSync(rutaPosible)) {
-                            fs.mkdirSync(rutaPosible, { recursive: true });
-                        }
-                        
-                        carpetaCreada = true;
-                        break;
-                    } catch (error) {
-                        continue;
-                    }
-                }
-                
-                nombresExistentes.add(categoria);
-
-
-            } catch (error) {
-                console.error(`Error al agregar categoría "${categoria}":`, error);
-            }
-        }
-
-    } catch (error) {
-        console.error('Error en sincronización de categorías:', error);
+        console.log(`Base de datos no disponible todavía, reintentando en 3s... (quedan ${intentosRestantes} intentos)`);
+        setTimeout(() => sincronizarAlArrancar(intentosRestantes - 1), 3000);
     }
 };
 
 const sincronizarDatosHandler: express.RequestHandler = async (req, res) => {
     const pool = (req as any).db as Pool;
     const { email } = req.body as { email: string };
-    const arrayConfirmacion: string[] = [];
 
     try {
-        // Parte 1: Creación del admin para asegurar su existencia.
+        const arrayConfirmacion = await sincronizarDatosUnaVez(pool);
 
-        // Consulta para obtener un usuario cuyo correo coincida con el del admin
-        const [obtenerAdmin]: any = await pool.execute(
-            'SELECT idUsuario FROM Usuarios WHERE correoElectronico = ?',
-            ['admin@auscultify.com']
-        );
-
-
-        // Si no hay admin, obtenerAdmin debe dar como resultado 0, por que no coincide la consulta
-        if (obtenerAdmin.length === 0) {
-            
-            // Creamos un string basico para encriptarlo y que sea la contraseña inicial del admin
-            const contrasenaAdmin = 'admin';
-            const salt = await bcrypt.genSalt(10);
-            const contrasenaEncriptada = await bcrypt.hash(contrasenaAdmin, salt);
-
-            // Insertar el admin en la base de datos
-            await pool.execute(
-                `INSERT INTO Usuarios (
-                    correoElectronico, contrasena, totalPreguntasAcertadas,
-                    totalPreguntasFalladas, totalPreguntasContestadas, racha, 
-                    esPublico, idCriterioMasUsado
-                )VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    'admin@auscultify.com', contrasenaEncriptada, 0,
-                    0, 0, 0,
-                    0, 1
-                ]
-            );
-
-            arrayConfirmacion.push('Admin creado exitosamente.');
-
-            console.log('Admin creado exitosamente: "admin@auscultify.com" con contraseña "admin"');
-        }else{
-            arrayConfirmacion.push('El admin ya existía previamente.');
-            console.log('El admin ya existía previamente.');
-        }
-
-        const [obtenerCategoria]: any = await pool.execute(
-            'SELECT * FROM Categorias'
-        );
-
-        if (obtenerCategoria.length === 0) {
-            await sincronizarCategoriasDeArchivo(pool);
-            arrayConfirmacion.push('Categorías sincronizadas desde el archivo.');
-            console.log('Categorías sincronizadas desde el archivo.');
-        } else {
-            arrayConfirmacion.push('Las categorías ya estaban sincronizadas previamente.');
-            console.log('Las categorías ya estaban sincronizadas previamente.');
-        } 
-        
-        res.status(200).json({ 
+        res.status(200).json({
             mensaje: 'Datos sincronizados correctamente',
+            detalles: arrayConfirmacion,
             email: email
         });
 
@@ -221,4 +221,5 @@ app.post('/sincronizar-datos', sincronizarDatosHandler);
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`SincronizarDatos service running on port ${PORT}`);
+    sincronizarAlArrancar();
 });

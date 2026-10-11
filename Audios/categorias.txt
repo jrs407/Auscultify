@@ -1,5 +1,3 @@
 Abdominal
 Cardiaco
-Patata
-Prueba
 Pulmonar

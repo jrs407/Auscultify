@@ -324,6 +324,7 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
         }
 
         await actualizarArchivoCategorias(pool);
+        eliminarRutasDeCategoria(categoriaParaEliminar.nombreCategoria);
 
         res.status(200).json({
             mensaje: 'Categoría eliminada correctamente',
@@ -349,6 +350,27 @@ const eliminarCategoriaHandler: express.RequestHandler = async (req, res) => {
         }
         
         res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la categoría' });
+    }
+};
+
+// Función para eliminar de rutaAudios.txt las líneas de los audios de una categoría.
+const eliminarRutasDeCategoria = (nombreCategoria: string) => {
+    try {
+        const rutaArchivoRutas = path.join(process.cwd(), 'Audios', 'rutaAudios.txt');
+
+        if (!fs.existsSync(rutaArchivoRutas)) {
+            return;
+        }
+
+        const lineasRestantes = fs.readFileSync(rutaArchivoRutas, 'utf8')
+            .split('\n')
+            .map(linea => linea.trim())
+            .filter(linea => linea.length > 0 && !linea.replace(/\\/g, '/').startsWith(`${nombreCategoria}/`));
+
+        fs.writeFileSync(rutaArchivoRutas, lineasRestantes.join('\n'), 'utf8');
+
+    } catch (error) {
+        console.error('Error al actualizar archivo de rutas de audios:', error);
     }
 };
 
